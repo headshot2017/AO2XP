@@ -46,6 +46,8 @@ C_RAINBOW = 6
 C_PINK = 7
 C_CYAN = 8
 
+DOWNLOAD_BLACKLIST = []
+
 def delay(msec):
 	dieTime = QtCore.QTime.currentTime().addMSecs(msec)
 	
@@ -80,8 +82,18 @@ def get_text_color(textcolor):
 	return QtGui.QColor(0, 0, 0)
 
 def download_thread(link, savepath):
+	global DOWNLOAD_BLACKLIST
+	if link in DOWNLOAD_BLACKLIST:
+		return
+	
 	print link, savepath
-	urllib.urlretrieve(link, savepath)
+	fp = urllib.urlopen(link)
+	if fp.getcode() != 200:
+		DOWNLOAD_BLACKLIST.append(link)
+		print "HTTP error %d while downloading %s" % (fp.getcode(), link)
+	else:
+		with open(savepath, "wb") as f:
+			f.write(fp.read())
 
 class ChatLogs(QtGui.QTextEdit):
 	def __init__(self, parent, logtype, logfile=None):
@@ -152,19 +164,46 @@ class AOCharMovie(QtGui.QLabel):
 		self.m_flipped = flip
 	
 	def play(self, p_char, p_emote, emote_prefix):
-		original_path = AOpath+"characters\\"+p_char+"\\"+emote_prefix+p_emote+".gif"
+		print p_emote
+		
+		if p_emote[0] == "/" or p_emote[0] == "\\":
+			p_emote = p_emote[1:]
+		elif "../../characters" in p_emote:
+			a = p_emote.split("/")
+			p_char = a[3]
+			emote = a[4]
+			emote_prefix = ""
+			p_emote = emote
+		
+		original_path = AOpath+"characters\\"+p_char+"\\"+emote_prefix+p_emote+".gif"	
 		alt_path = AOpath+"characters\\"+p_char+"\\"+p_emote+".png"
 		placeholder_path = AOpath+"themes\\default\\placeholder.gif"
 		gif_path = ""
 		
 		if exists(original_path):
 			gif_path = original_path
-		elif exists(alt_path):
-			gif_path = alt_path
-		elif exists(placeholder_path):
-			gif_path = placeholder_path
 		else:
-			gif_path = ""
+			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
+				url = url.replace(" ", "%20")
+				if not exists(AOpath+"characters\\"+p_char): # gotta make sure the character folder exists, better safe than sorry
+					os.mkdir(AOpath+"characters\\"+p_char)
+				thread.start_new_thread(download_thread, (url, original_path))
+			
+			if exists(alt_path):
+				gif_path = alt_path
+			else:
+				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".png"
+					url = url.replace(" ", "%20")
+					if not exists(AOpath+"characters\\"+p_char): # gotta make sure the character folder exists, better safe than sorry
+						os.mkdir(AOpath+"characters\\"+p_char)
+					thread.start_new_thread(download_thread, (url, alt_path))
+		
+					if exists(placeholder_path):
+						gif_path = placeholder_path
+					else:
+						gif_path = ""
 		
 		self.m_movie.stop()
 		self.m_movie.setFileName(gif_path)
