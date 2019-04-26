@@ -164,11 +164,10 @@ class AOCharMovie(QtGui.QLabel):
 		self.m_flipped = flip
 	
 	def play(self, p_char, p_emote, emote_prefix):
-		print p_emote
-		
 		if p_emote[0] == "/" or p_emote[0] == "\\":
 			p_emote = p_emote[1:]
 		elif "../../characters" in p_emote:
+			print p_emote
 			a = p_emote.split("/")
 			p_char = a[3]
 			emote = a[4]
@@ -1953,6 +1952,9 @@ class gui(QtGui.QWidget):
 			BASS_ChannelPlay(self.sound, True)
 
 	def playMusic(self, mus):
+		if not mus.endswith(".mp3") and "MUSIC START" in self.musiclist: #vidya workaround
+			mus += ".mp3"
+		
 		if self.music:
 			if BASS_ChannelIsActive(self.music):
 				BASS_ChannelStop(self.music)

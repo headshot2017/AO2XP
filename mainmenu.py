@@ -389,7 +389,9 @@ class lobby(QtGui.QWidget):
 						continue
 					del network[0]
 					del network[len(network)-1]
-					musiclist = [ music for music in network ]
+					
+					musiclist = [music for music in network]
+					
 					self.connectprogress.setText('Finishing...')
 					self.tcp.send('RD#%')
 					print '[client]', 'received songs (%d)' % len(musiclist)
