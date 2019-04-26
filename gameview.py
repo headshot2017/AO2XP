@@ -1952,7 +1952,7 @@ class gui(QtGui.QWidget):
 			BASS_ChannelPlay(self.sound, True)
 
 	def playMusic(self, mus):
-		if not mus.endswith(".mp3") and "MUSIC START" in self.musiclist: #vidya workaround
+		if not mus.endswith(".mp3") and "===MUSIC START===.mp3" in self.musiclist: #vidya workaround
 			mus += ".mp3"
 		
 		if self.music:
