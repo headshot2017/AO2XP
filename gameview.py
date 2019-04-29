@@ -437,10 +437,13 @@ class gui(QtGui.QWidget):
 	ICchat = QtCore.pyqtSignal(list)
 	WTCEsignal = QtCore.pyqtSignal(str, int)
 	healthbars = QtCore.pyqtSignal(int, int)
+	gotPing = QtCore.pyqtSignal(int)
 
 	def __init__(self, parent=None):
 		super(gui, self).__init__(parent)
 		self.gamewindow = parent
+		
+		self.gotPing.connect(self.setPing)
 		
 		for i in range(self.chatmessage_size):
 			self.m_chatmessage.append("")
@@ -791,6 +794,9 @@ class gui(QtGui.QWidget):
 		self.sliderlabel2.move(self.soundslider.x() + self.soundslider.size().width()+8, self.soundslider.y())
 		self.sliderlabel3.move(self.blipslider.x() + self.blipslider.size().width()+8, self.blipslider.y())
 		
+		self.pinglabel = QtGui.QLabel(self)
+		self.pinglabel.setGeometry(self.sliderlabel3.x() + 32, self.sliderlabel3.y(), 96, 14)
+		
 		self.name.show()
 		self.char.show()
 		self.court.show()
@@ -824,6 +830,9 @@ class gui(QtGui.QWidget):
 		self.charselect = charselect.charselect(self)
 		
 		return
+	
+	def setPing(self, newping):
+		self.pinglabel.setText("Ping: %d" % newping)
 	
 	def setPosition(self, ind):
 		if not self.oocnameinput.text():
@@ -2321,6 +2330,7 @@ class TCP_Thread(QtCore.QThread):
 				return
 			pingtimer -= 1
 			if pingtimer == 0:
+				pingbefore = time.time()
 				self.parent.tcp.send('CH#%')
 				pingtimer = 150
 			
@@ -2512,6 +2522,10 @@ class TCP_Thread(QtCore.QThread):
 				elif header == 'KB':
 					reason = network[1]
 					self.parent.emit(QtCore.SIGNAL('showMessage(QString, QString, QString)'), 'critical', 'Connection lost', 'You have been banned from the server. (%s)' % reason)
+				
+				elif header == "CHECK": #ping
+					pingafter = time.time()
+					self.parent.gotPing.emit(int((pingafter - pingbefore)*1000))
 				
 				elif header == 'DONE':
 					self.parent.charselect.show()
