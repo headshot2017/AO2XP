@@ -1937,9 +1937,11 @@ class gui(QtGui.QWidget):
 			else:
 				self.objectsnd = None
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download sounds"):
-					self.objectsnd = BASS_StreamCreateURL("http://s3.wasabisys.com/webao/base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", 0, 0, DOWNLOADPROC(), 0)
-				if not self.objectsnd:
-					self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds\\general\\sfx-objection.wav', 0, 0, 0)
+					if not exists(AOpath+"characters\\"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
+						os.mkdir(AOpath+"characters\\"+charname.lower())
+					thread.start_new_thread(download_thread, ("http://s3.wasabisys.com/webao/base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
+				
+				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds\\general\\sfx-objection.wav', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.objectsnd, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.objectsnd, True)
 	
@@ -2397,7 +2399,7 @@ class TCP_Thread(QtCore.QThread):
 							name = 'char id %d' % charid
 						
 						if len(network) > 3:
-							name += " ("+network[3]+")"
+							name += " ("+network[3].decode("utf-8")+")"
 						self.parent.icLog.append('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
 					else:
 						self.parent.icLog.append('[%d:%.2d] the music was changed to %s' % (t[3], t[4], music))

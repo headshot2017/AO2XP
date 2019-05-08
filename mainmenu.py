@@ -348,7 +348,7 @@ class lobby(QtGui.QWidget):
 					got_stuff = True
 				
 				elif header == "decryptor":
-					self.tcp.send("HI#thanks for the back massage Maya. [IC] Adrian (MayaDA): hey ace#%")
+					self.tcp.send("HI#vidya is a fucking shitshow#%")
 				
 				elif header == "ID":
 					self.tcp.send("ID#AO2#69.1337.420#%") #need to send this to tsuserver3 servers in order to get feature list (FL)
