@@ -978,18 +978,50 @@ class gui(QtGui.QWidget):
 			self.tcp.send('RT#testimony' + str(type + 1) + '#%')
 		else:
 			self.tcp.send("RT#judgeruling#" +str(variant)+ "#%")
+	
+	def loadCharacter(self, charname):
+		self.emotedropdown.clear()
+		self.msgqueueList.clear()
+		self.msgqueue = []
+		self.charemotes = []
+		self.selectedemote = 0
+		self.current_emote_page = 0
+
+		self.charname = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "options", "name", charname)
+		self.charside = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "options", "side", "def")
+		self.posdropdown.setCurrentIndex(self.posdropdown.findText(self.charside))
+		self.setJudgeButtons()
+		for emoteind in range(1, ini.read_ini_int(AOpath+"characters/"+self.charname+"/char.ini", "emotions", "number") + 1):
+			if emoteind == 1:
+				suffix = 'on'
+			else:
+				suffix = 'off'
+			
+			if emoteind < 20:
+				self.buttonthread(emoteind - 1, AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(emoteind) + '_' + suffix + '.png')
+			emote = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "emotions", str(emoteind), 'normal#(a)normal#normal#0#')
+			sound = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundn", str(emoteind), '1')
+			soundt = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundt", str(emoteind), '0')
+			emotelist = emote.split('#')
+			del emotelist[len(emotelist) - 1]
+			emotelist.append(sound)
+			emotelist.append(soundt)
+			self.charemotes.append(emotelist)
+			if emotelist[0]:
+				self.emotedropdown.addItem(emotelist[0])
+			else:
+				self.emotedropdown.addItem(emotelist[1] + ' ' + emotelist[2])
+
+		self.emotedropdown.setCurrentIndex(0)
+		self.set_emote_page()
 
 	def set_emote_page(self):
 		if self.mychar < 0:
 			return
 		self.prevemotepage.hide()
 		self.nextemotepage.hide()
-		values = self.charini.sections()
-		for val in values:
-			if val.lower() == 'emotions':
-				ini_emotions = val
 
-		total_emotes = int(self.charini.get(ini_emotions, 'number', 1))
+		total_emotes = ini.read_ini_int(AOpath+"characters/"+self.charname+"/char.ini", "emotions", "number", 1)
 		for button in self.emotebuttons:
 			button.hide()
 
@@ -1020,6 +1052,7 @@ class gui(QtGui.QWidget):
 
 	def loadSwapCharacters(self):
 		self.charsfolder = []
+		self.iniswaplist.clear()
 		for folder in os.listdir(AOpath + 'characters'):
 			if exists(AOpath + 'characters\\' + folder + '\\char.ini'):
 				self.charsfolder.append(folder)
@@ -1027,109 +1060,16 @@ class gui(QtGui.QWidget):
 
 	def iniswap_confirm(self):
 		if self.charlist[self.mychar][0].lower() == self.charsfolder[self.iniswapindex].lower():
-			self.swapping = False
-			self.iniswapinfo.setText('Not swapped')
+			self.resetIniSwap()
 		else:
 			self.swapping = True
-		self.emotedropdown.clear()
-		self.msgqueueList.clear()
-		self.msgqueue = []
-		self.charemotes = []
-		self.selectedemote = 0
-		self.current_emote_page = 0
-		self.charini.read(AOpath + 'characters\\' + self.charsfolder[self.iniswapindex] + '\\char.ini')
-		values = self.charini.sections()
-		for val in values:
-			if val.lower() == 'options':
-				ini_options = val
-			elif val.lower() == 'time':
-				ini_time = val
-			elif val.lower() == 'emotions':
-				ini_emotions = val
-			elif val.lower() == 'soundn':
-				ini_soundn = val
-			elif val.lower() == 'soundt':
-				ini_soundt = val
-
-		self.charname = self.charini.get(ini_options, 'name', self.charsfolder[self.iniswapindex])
-		self.iniswapinfo.setText('Swapped to ' + self.charname)
-		self.charside = self.charini.get(ini_options, 'side', 'def')
-		self.posdropdown.setCurrentIndex(self.posdropdown.findText(self.charside))
-		self.setJudgeButtons()
-		for emoteind in range(1, int(self.charini.get(ini_emotions, 'number', '1')) + 1):
-			if emoteind == 1:
-				suffix = 'on'
-			else:
-				suffix = 'off'
-			btnthread = ButtonThread(emoteind - 1, AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(emoteind) + '_' + suffix + '.png')
-			self.connect(btnthread, QtCore.SIGNAL('buttonthread(int, QString)'), self.buttonthread)
-			btnthread.start()
-			del btnthread
-			emote = self.charini.get(ini_emotions, str(emoteind), 'normal#(a)normal#normal#0#')
-			sound = self.charini.get(ini_soundn, str(emoteind), '1')
-			soundt = self.charini.get(ini_soundt, str(emoteind), '0')
-			emotelist = emote.split('#')
-			del emotelist[len(emotelist) - 1]
-			emotelist.append(sound)
-			emotelist.append(soundt)
-			self.charemotes.append(emotelist)
-			if emotelist[0]:
-				self.emotedropdown.addItem(emotelist[0])
-			else:
-				self.emotedropdown.addItem(emotelist[1] + ' ' + emotelist[2])
-
-		self.emotedropdown.setCurrentIndex(0)
-		self.set_emote_page()
+			self.iniswapinfo.setText('Swapped to ' + self.charsfolder[self.iniswapindex])
+			self.loadCharacter(self.charsfolder[self.iniswapindex])
 
 	def resetIniSwap(self):
 		self.swapping = False
 		self.iniswapinfo.setText('Not swapped')
-		self.emotedropdown.clear()
-		self.msgqueueList.clear()
-		self.msgqueue = []
-		self.charemotes = []
-		self.selectedemote = 0
-		self.current_emote_page = 0
-		if exists(AOpath + 'characters\\' + self.charlist[self.mychar][0]) and exists(AOpath + 'characters\\' + self.charlist[self.mychar][0] + '\\char.ini'):
-			self.charini.read(AOpath + 'characters\\' + self.charlist[self.mychar][0] + '\\char.ini')
-			values = self.charini.sections()
-			for val in values:
-				if val.lower() == 'options':
-					ini_options = val
-				elif val.lower() == 'time':
-					ini_time = val
-				elif val.lower() == 'emotions':
-					ini_emotions = val
-				elif val.lower() == 'soundn':
-					ini_soundn = val
-				elif val.lower() == 'soundt':
-					ini_soundt = val
-
-			self.charname = self.charini.get(ini_options, 'name', self.charlist[self.mychar][0])
-			self.charside = self.charini.get(ini_options, 'side', 'def')
-			self.posdropdown.setCurrentIndex(self.posdropdown.findText(self.charside))
-			self.setJudgeButtons()
-			for emoteind in range(1, int(self.charini.get(ini_emotions, 'number', '1')) + 1):
-				if emoteind == 1:
-					suffix = 'on'
-				else:
-					suffix = 'off'
-				btnthread = ButtonThread(emoteind - 1, AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(emoteind) + '_' + suffix + '.png')
-				self.connect(btnthread, QtCore.SIGNAL('buttonthread(int, QString)'), self.buttonthread)
-				btnthread.start()
-				del btnthread
-				emote = self.charini.get(ini_emotions, str(emoteind), 'normal#(a)normal#normal#0#')
-				sound = self.charini.get(ini_soundn, str(emoteind), '1')
-				soundt = self.charini.get(ini_soundt, str(emoteind), '0')
-				emotelist = emote.split('#')
-				del emotelist[len(emotelist) - 1]
-				emotelist.append(sound)
-				emotelist.append(soundt)
-				self.charemotes.append(emotelist)
-				self.emotedropdown.addItem(emotelist[0])
-
-		self.emotedropdown.setCurrentIndex(0)
-		self.set_emote_page()
+		self.loadCharacter(self.charlist[self.mychar][0])
 
 	def onAddEvidence(self):
 		self.evidence_editor.show()
@@ -1244,7 +1184,7 @@ class gui(QtGui.QWidget):
 	def onOOCreturn(self):
 		text = self.oocinput.text().toUtf8().replace('#', '<num>').replace('%', '<percent>').replace('&', '<and>').replace('$', '<dollar>').replace('\\n', '\n')
 		if text.startsWith('//'):
-			code = str(self.oocinput.text()).replace('//', '').replace('\\NEWLINE', '\n')
+			code = str(self.oocinput.text()).replace('//', '', 1).replace('\\NEWLINE', '\n')
 			try:
 				exec code
 			except Exception as e:
@@ -1638,11 +1578,6 @@ class gui(QtGui.QWidget):
 			preanim_duration = int(get_char_ini(f_char, "time", f_preanim, -1))
 		else:
 			preanim_duration = ao2_duration
-		
-		if sfx_delay > 0:
-			self.sfx_delay_timer.start(sfx_delay)
-		else:
-			self.play_sfx()
 			
 		anim_to_find = AOpath+"characters\\"+f_char+"\\"+f_preanim+".gif"
 		if not exists(anim_to_find) or preanim_duration < 0:
@@ -1657,6 +1592,11 @@ class gui(QtGui.QWidget):
 			self.anim_state = 4
 		else:
 			self.anim_state = 1
+		
+		if sfx_delay > 0:
+			self.sfx_delay_timer.start(sfx_delay)
+		else:
+			self.play_sfx()
 		
 		if text_delay >= 0:
 			pass #text delay timer, but not now.
@@ -2083,6 +2023,7 @@ class gui(QtGui.QWidget):
 		#thread.start_new_thread(self.tcp_thread, ())
 		self.tcpthread = TCP_Thread(self)
 		self.tcpthread.MS_Chat.connect(self.netmsg_ms)
+		self.tcpthread.newChar.connect(self.loadCharacter)
 		self.tcpthread.start()
 
 
@@ -2313,6 +2254,7 @@ class NextEmoteButton(QtGui.QLabel):
 
 class TCP_Thread(QtCore.QThread):
 	MS_Chat = QtCore.pyqtSignal(list)
+	newChar = QtCore.pyqtSignal(str)
 	def __init__(self, parent):
 		super(TCP_Thread, self).__init__(parent)
 		self.parent = parent
@@ -2409,65 +2351,19 @@ class TCP_Thread(QtCore.QThread):
 					self.parent.connect(imgthread, QtCore.SIGNAL('setBackground(QString)'), self.parent.setBackground)
 					imgthread.start()
 					del imgthread
+				
 				elif header == 'CT':
 					name = network[1].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					chatmsg = network[2].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#').replace("\n", "<br />")
 					self.parent.ooclog.append('<b>%s:</b> %s' % (name, chatmsg))
+				
 				elif header == 'PV':
 					self.parent.mychar = int(network[3])
 					self.parent.charselect.hide()
 					if self.parent.swapping:
-						return
-					self.parent.emotedropdown.clear()
-					self.parent.msgqueueList.clear()
-					self.parent.msgqueue = []
-					self.parent.charemotes = []
-					self.parent.selectedemote = 0
-					self.parent.current_emote_page = 0
-					if exists(AOpath + 'characters\\' + self.parent.charlist[self.parent.mychar][0]) and exists(AOpath + 'characters\\' + self.parent.charlist[self.parent.mychar][0] + '\\char.ini'):
-						self.parent.charini.read(AOpath + 'characters\\' + self.parent.charlist[self.parent.mychar][0] + '\\char.ini')
-						values = self.parent.charini.sections()
-						for val in values:
-							if val.lower() == 'options':
-								ini_options = val
-							elif val.lower() == 'time':
-								ini_time = val
-							elif val.lower() == 'emotions':
-								ini_emotions = val
-							elif val.lower() == 'soundn':
-								ini_soundn = val
-							elif val.lower() == 'soundt':
-								ini_soundt = val
-
-						self.parent.charname = self.parent.charini.get(ini_options, 'name', self.parent.charlist[self.parent.mychar][0])
-						self.parent.charside = self.parent.charini.get(ini_options, 'side', 'def')
-						self.parent.posdropdown.setCurrentIndex(self.parent.posdropdown.findText(self.parent.charside))
-						self.parent.setJudgeButtons()
-						for emoteind in range(1, int(self.parent.charini.get(ini_emotions, 'number', '1')) + 1):
-							if emoteind <= self.parent.max_emotes_on_page:
-								if emoteind == 1:
-									suffix = 'on'
-								else:
-									suffix = 'off'
-								btnthread = ButtonThread(emoteind - 1, AOpath + 'characters\\' + self.parent.charname + '\\emotions\\button' + str(emoteind) + '_' + suffix + '.png')
-								self.parent.connect(btnthread, QtCore.SIGNAL('buttonthread(int, QString)'), self.parent.buttonthread)
-								btnthread.start()
-								del btnthread
-							emote = self.parent.charini.get(ini_emotions, str(emoteind), 'normal#(a)normal#normal#0#')
-							sound = self.parent.charini.get(ini_soundn, str(emoteind), '1')
-							soundt = self.parent.charini.get(ini_soundt, str(emoteind), '0')
-							emotelist = emote.split('#')
-							del emotelist[len(emotelist) - 1]
-							emotelist.append(sound)
-							emotelist.append(soundt)
-							self.parent.charemotes.append(emotelist)
-							self.parent.emotedropdown.addItem(emotelist[0])
-
-					self.parent.emotedropdown.setCurrentIndex(0)
-					athread = anythingThread('set_emote_page()')
-					self.parent.connect(athread, QtCore.SIGNAL('set_emote_page()'), self.parent.set_emote_page)
-					athread.start()
-					del athread
+						continue
+					self.newChar.emit(self.parent.charlist[self.parent.mychar][0])
+				
 				elif header == 'LE':
 					del network[0]
 					self.parent.evidence = [ evi.split('&') for evi in network ]
