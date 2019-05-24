@@ -1569,13 +1569,13 @@ class gui(QtGui.QWidget):
 		f_char = self.m_chatmessage[CHARNAME]
 		f_preanim = self.m_chatmessage[PREANIM]
 		
-		ao2_duration = int(get_char_ini(f_char, "time", "%"+f_preanim, -1))
-		text_delay = int(get_char_ini(f_char, "TextDelay", f_preanim, -1))
+		ao2_duration = ini.read_ini_int(AOpath+"characters/"+f_char+"/char.ini", "time", "%"+f_preanim, -1)
+		text_delay = ini.read_ini_int(AOpath+"characters/"+f_char+"/char.ini", "textdelay", f_preanim, -1)
 		sfx_delay = int(self.m_chatmessage[SFX_DELAY]) * 60
 		
 		preanim_duration = 0
 		if ao2_duration < 0:
-			preanim_duration = int(get_char_ini(f_char, "time", f_preanim, -1))
+			preanim_duration = ini.read_ini_int(AOpath+"characters/"+f_char+"/char.ini", "time", f_preanim, -1)
 		else:
 			preanim_duration = ao2_duration
 			
