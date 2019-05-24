@@ -997,8 +997,6 @@ class gui(QtGui.QWidget):
 			else:
 				suffix = 'off'
 			
-			if emoteind < 20:
-				self.buttonthread(emoteind - 1, AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(emoteind) + '_' + suffix + '.png')
 			emote = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "emotions", str(emoteind), 'normal#(a)normal#normal#0#')
 			sound = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundn", str(emoteind), '1')
 			soundt = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundt", str(emoteind), '0')
