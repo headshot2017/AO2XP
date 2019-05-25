@@ -1,4 +1,4 @@
-import socket, thread, time, os, buttons, urllib, charselect, ini
+import socket, thread, time, os, buttons, urllib, charselect, ini, random
 from PyQt4 import QtGui, QtCore
 from pybass import *
 from os.path import exists
@@ -94,6 +94,17 @@ def download_thread(link, savepath):
 	else:
 		with open(savepath, "wb") as f:
 			f.write(fp.read())
+
+def mockStr(text):
+	upper = random.choice([True, False])
+	l = list(text)
+	for i in range(len(text)):
+		if text[i] == " ":
+			continue
+		
+		l[i] = l[i].upper() if upper else l[i].lower()
+		upper = not upper
+	return "".join(l)
 
 class ChatLogs(QtGui.QTextEdit):
 	def __init__(self, parent, logtype, logfile=None):
@@ -550,12 +561,13 @@ class gui(QtGui.QWidget):
 		self.musicitems.itemDoubleClicked.connect(self.onMusicClick)
 		
 		self.gametabs = QtGui.QTabWidget(self)
-		self.gametab_log = QtGui.QWidget()
-		self.gametab_evidence = QtGui.QWidget()
-		self.gametab_msgqueue = QtGui.QWidget()
-		self.gametab_iniswap = QtGui.QWidget()
-		self.gametab_mute = QtGui.QWidget()
-		self.gametab_pair = QtGui.QWidget()
+		self.gametab_log = QtGui.QWidget() # the IC chat log
+		self.gametab_evidence = QtGui.QWidget() # court record
+		self.gametab_msgqueue = QtGui.QWidget() # IC messages pending to be sent
+		self.gametab_iniswap = QtGui.QWidget() # self explanatory
+		self.gametab_mute = QtGui.QWidget() # mute a player
+		self.gametab_pair = QtGui.QWidget() # AO2 pair
+		self.gametab_misc = QtGui.QWidget() # ao2xp misc/fun stuff
 		
 		self.icLog = ChatLogs(self.gametab_log, 0, self.ooclog.logfile)
 		self.icLog.setReadOnly(True)
@@ -656,6 +668,13 @@ class gui(QtGui.QWidget):
 		self.pairoffsetreset.move(self.pairoffset.x() + self.pairoffset.size().width() + 8, self.pairoffset.y())
 		self.pairoffsetreset.clicked.connect(partial(self.pairoffset.setValue, 0))
 		
+		self.misc_layout = QtGui.QVBoxLayout(self.gametab_misc)
+		self.misc_layout.setAlignment(QtCore.Qt.AlignTop)
+		self.mocktext = QtGui.QCheckBox()
+		self.mocktext.setChecked(False)
+		self.mocktext.setText(mockStr("mock text"))
+		self.misc_layout.addWidget(self.mocktext)
+		
 		self.gametabs.move(8, 402)
 		self.gametabs.resize(714 - 304, 256)
 		self.gametabs.addTab(self.gametab_log, 'Game log')
@@ -664,16 +683,21 @@ class gui(QtGui.QWidget):
 		self.gametabs.addTab(self.gametab_mute, 'Mute')
 		self.gametabs.addTab(self.gametab_iniswap, 'Easy IniSwap')
 		self.gametabs.addTab(self.gametab_pair, 'Pair')
+		self.gametabs.addTab(self.gametab_misc, 'Misc')
+		
 		self.icchatinput = QtGui.QLineEdit(self)
 		self.icchatinput.setGeometry(0, 192, 256, 23)
 		self.icchatinput.returnPressed.connect(self.onICreturn)
 		self.icchatinput.setPlaceholderText('Game chat')
+		
 		self.emotedropdown = QtGui.QComboBox(self)
 		self.emotedropdown.setGeometry(192, 344, 128, 20)
 		self.emotedropdown.currentIndexChanged.connect(partial(self.changeEmote, True))
+		
 		self.colordropdown = QtGui.QComboBox(self)
 		self.colordropdown.setGeometry(192, 376, 72, 20)
 		self.colordropdown.currentIndexChanged.connect(self.setChatColor)
+		
 		self.posdropdown = QtGui.QComboBox(self)
 		self.posdropdown.addItems(["def", "pro", "wit", "hld", "hlp", "jud"])
 		self.posdropdown.setGeometry(self.emotedropdown.x() + self.emotedropdown.size().width() + 8, 344, 64, 20)
@@ -1194,6 +1218,9 @@ class gui(QtGui.QWidget):
 				self.ooclog.append(msg)
 				return
 			return
+		
+		if self.mocktext.isChecked():
+			text = mockStr(text)
 
 		self.sendOOCchat(self.oocnameinput.text().toUtf8(), text)
 		self.oocinput.clear()
@@ -1202,6 +1229,9 @@ class gui(QtGui.QWidget):
 		text = str(self.icchatinput.text().toUtf8()).replace('#', '<num>').replace('%', '<percent>').replace('&', '<and>').replace('$', '<dollar>').replace('\\n', '\n')
 		if not text:
 			return
+		
+		if self.mocktext.isChecked():
+			text = mockStr(text)
 		
 		emote = self.charemotes[self.selectedemote]
 		if self.nointerruptbtn.isChecked():
