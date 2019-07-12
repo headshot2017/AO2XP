@@ -1,9 +1,10 @@
 from ConfigParser import ConfigParser
+from PyQt4.QtCore import QString
 
 def read_ini(file, section, value, default=""):
-	if isinstance(file, str):
+	if isinstance(file, str) or isinstance(file, QString):
 		conf = ConfigParser()
-		conf.read(file)
+		conf.read(str(file))
 	else:
 		conf = file
 		
@@ -16,9 +17,9 @@ def read_ini(file, section, value, default=""):
 	return default
 
 def read_ini_bool(file, section, value, default=False):
-	if isinstance(file, str):
+	if isinstance(file, str) or isinstance(file, QString):
 		conf = ConfigParser()
-		conf.read(file)
+		conf.read(str(file))
 	else:
 		conf = file
 	
@@ -31,9 +32,9 @@ def read_ini_bool(file, section, value, default=False):
 	return default
 
 def read_ini_int(file, section, value, default=0):
-	if isinstance(file, str):
+	if isinstance(file, str) or isinstance(file, QString):
 		conf = ConfigParser()
-		conf.read(file)
+		conf.read(str(file))
 	else:
 		conf = file
 	
