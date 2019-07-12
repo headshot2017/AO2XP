@@ -556,6 +556,11 @@ class gui(QtGui.QWidget):
 		self.oocinput.move(714 - 288 + self.oocnameinput.size().width(), 256)
 		self.oocinput.returnPressed.connect(self.onOOCreturn)
 		
+		self.ooclogin = QtGui.QPushButton("Login", self)
+		self.ooclogin.resize(48, 20)
+		self.ooclogin.move(714 - (self.ooclogin.size().width()), self.oocinput.y() + self.ooclogin.size().height())
+		self.ooclogin.clicked.connect(self.onOOCLoginBtn)
+		
 		self.musicitems = QtGui.QListWidget(self)
 		self.musicitems.setGeometry(714 - 288, 348, 288, 320)
 		self.musicitems.itemDoubleClicked.connect(self.onMusicClick)
@@ -852,8 +857,11 @@ class gui(QtGui.QWidget):
 		self.setBackground('default')
 		
 		self.charselect = charselect.charselect(self)
-		
-		return
+	
+	def onOOCLoginBtn(self):
+		password, ok = QtGui.QInputDialog.getText(self, "Login as moderator", "Enter password.")
+		if password and ok:
+			self.sendOOCchat(self.oocnameinput.text().toUtf8(), "/login "+password.toUtf8())
 	
 	def setPing(self, newping):
 		self.pinglabel.setText("Ping: %d" % newping)
