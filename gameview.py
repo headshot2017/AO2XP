@@ -53,6 +53,9 @@ def delay(msec):
 	
 	while QtCore.QTime.currentTime() < dieTime:
 		QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents, 100)
+
+def decode_ao_str(text):
+	return text.replace("<percent>", "%").replace("<pound>", "#").replace("<num>", "#").replace("<and>", "&").replace("<dollar>", "$")
 	
 def get_char_ini(char, section, value, default=""):
 	tempini = ConfigParser()
@@ -682,8 +685,13 @@ class gui(QtGui.QWidget):
 		self.spacebartext.setChecked(False)
 		self.spacebartext.setText("S p a c i n g")
 		self.spacebartext.move(self.mocktext.x(), self.mocktext.y()+24)
+		self.autocaps = QtGui.QCheckBox()
+		self.autocaps.setChecked(False)
+		self.autocaps.setText("Automatic caps and period")
+		self.autocaps.move(self.spacebartext.x(), self.spacebartext.y()+24)
 		self.misc_layout.addWidget(self.mocktext)
 		self.misc_layout.addWidget(self.spacebartext)
+		self.misc_layout.addWidget(self.autocaps)
 		
 		self.gametabs.move(8, 402)
 		self.gametabs.resize(714 - 304, 256)
@@ -1240,6 +1248,12 @@ class gui(QtGui.QWidget):
 		
 		if self.mocktext.isChecked():
 			text = mockStr(text)
+		if self.autocaps.isChecked():
+			l = list(text)
+			l[0] = l[0].upper()
+			if l[-1] != ".":
+				l.append(".")
+			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm")
 
 		self.sendOOCchat(self.oocnameinput.text().toUtf8(), text)
 		self.oocinput.clear()
@@ -1251,6 +1265,12 @@ class gui(QtGui.QWidget):
 		
 		if self.mocktext.isChecked():
 			text = mockStr(text)
+		if self.autocaps.isChecked():
+			l = list(text)
+			l[0] = l[0].upper()
+			if l[-1] != ".":
+				l.append(".")
+			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm")
 		if self.spacebartext.isChecked():
 			l = list(text)
 			for i in range(1, len(l)+len(l)-1, 2):
@@ -2386,7 +2406,7 @@ class TCP_Thread(QtCore.QThread):
 					self.MS_Chat.emit(network)
 					
 				elif header == 'MC':
-					music = network[1]
+					music = decode_ao_str(network[1])
 					charid = int(network[2])
 					t = time.localtime()
 					if charid != -1:
