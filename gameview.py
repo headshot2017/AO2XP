@@ -1240,11 +1240,6 @@ class gui(QtGui.QWidget):
 		
 		if self.mocktext.isChecked():
 			text = mockStr(text)
-		if self.spacebartext.isChecked():
-			l = list(text)
-			for i in range(1, len(l)+len(l)-1, 2):
-				l.insert(i, " ")
-				text = "".join(l)
 
 		self.sendOOCchat(self.oocnameinput.text().toUtf8(), text)
 		self.oocinput.clear()
@@ -1256,6 +1251,11 @@ class gui(QtGui.QWidget):
 		
 		if self.mocktext.isChecked():
 			text = mockStr(text)
+		if self.spacebartext.isChecked():
+			l = list(text)
+			for i in range(1, len(l)+len(l)-1, 2):
+				l.insert(i, " ")
+				text = "".join(l)
 		
 		emote = self.charemotes[self.selectedemote]
 		if self.nointerruptbtn.isChecked():
