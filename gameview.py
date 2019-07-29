@@ -1253,7 +1253,7 @@ class gui(QtGui.QWidget):
 			l[0] = l[0].upper()
 			if l[-1] != ".":
 				l.append(".")
-			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm")
+			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm").replace("it's", "It's")
 
 		self.sendOOCchat(self.oocnameinput.text().toUtf8(), text)
 		self.oocinput.clear()
@@ -1270,7 +1270,7 @@ class gui(QtGui.QWidget):
 			l[0] = l[0].upper()
 			if l[-1] != ".":
 				l.append(".")
-			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm")
+			text = "".join(l).replace(" i ", " I ").replace("i'm", "I'm").replace("it's", "It's")
 		if self.spacebartext.isChecked():
 			l = list(text)
 			for i in range(1, len(l)+len(l)-1, 2):
