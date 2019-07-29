@@ -678,7 +678,12 @@ class gui(QtGui.QWidget):
 		self.mocktext = QtGui.QCheckBox()
 		self.mocktext.setChecked(False)
 		self.mocktext.setText(mockStr("mock text"))
+		self.spacebartext = QtGui.QCheckBox()
+		self.spacebartext.setChecked(False)
+		self.spacebartext.setText("S p a c i n g")
+		self.spacebartext.move(self.mocktext.x(), self.mocktext.y()+24)
 		self.misc_layout.addWidget(self.mocktext)
+		self.misc_layout.addWidget(self.spacebartext)
 		
 		self.gametabs.move(8, 402)
 		self.gametabs.resize(714 - 304, 256)
@@ -880,6 +885,12 @@ class gui(QtGui.QWidget):
 	def changeSoundVolume(self, value):
 		if self.sound:
 			BASS_ChannelSetAttribute(self.sound, BASS_ATTRIB_VOL, value / 100.0)
+		BASS_ChannelSetAttribute(self.realizationsnd, BASS_ATTRIB_VOL, value / 100.0)
+		BASS_ChannelSetAttribute(self.wtcesfx, BASS_ATTRIB_VOL, value / 100.0)
+		BASS_ChannelSetAttribute(self.guiltysfx, BASS_ATTRIB_VOL, value / 100.0)
+		BASS_ChannelSetAttribute(self.notguiltysfx, BASS_ATTRIB_VOL, value / 100.0)
+		if self.modcall:
+			BASS_ChannelSetAttribute(self.modcall, BASS_ATTRIB_VOL, value / 100.0)
 	
 	def changeBlipVolume(self, value):
 		if self.blipsnd:
@@ -1119,7 +1130,7 @@ class gui(QtGui.QWidget):
 		if "modcall_reason" in self.features:
 			reason, ok = QtGui.QInputDialog.getText(self, "Call a moderator", "Enter your reason.")
 			if ok and reason:
-				self.tcp.send("ZZ#"+reason+"#%")
+				self.tcp.send("ZZ#"+reason.toUtf8()+"#%")
 		else:
 			self.tcp.send("ZZ#%")
 
@@ -1229,6 +1240,11 @@ class gui(QtGui.QWidget):
 		
 		if self.mocktext.isChecked():
 			text = mockStr(text)
+		if self.spacebartext.isChecked():
+			l = list(text)
+			for i in range(1, len(l)+len(l)-1, 2):
+				l.insert(i, " ")
+				text = "".join(l)
 
 		self.sendOOCchat(self.oocnameinput.text().toUtf8(), text)
 		self.oocinput.clear()
@@ -1378,10 +1394,13 @@ class gui(QtGui.QWidget):
 		t = time.localtime()
 		logcharname = f_char
 		if f_char.lower() != self.charlist[f_char_id][0].lower():
-			logcharname = self.charlist[f_char_id][0] + ' (' + f_char + ')'
+			logcharname = self.charlist[f_char_id][0] + ' (' + f_char.decode("utf-8") + ')'
 		
 		if self.m_chatmessage[SHOWNAME]:
-			logcharname += " ("+self.m_chatmessage[SHOWNAME].decode("utf-8")+")"
+			try:
+				logcharname += " ("+self.m_chatmessage[SHOWNAME].decode("utf-8")+")"
+			except:
+				logcharname += " (???)"
 		
 		if evidence == -1:
 			self.icLog.append('[%d:%.2d] %s: %s' % (t[3], t[4], logcharname, self.m_chatmessage[CHATMSG]))
