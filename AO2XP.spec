@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['AO2XP.py'],
-             pathex=['I:\\Documents and Settings\\Admin\\Desktop\\AOpy\\gui'],
+             pathex=['.'],
              binaries=[("bass.dll", ".")],
              datas=None,
              hiddenimports=[],
