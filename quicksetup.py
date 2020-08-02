@@ -25,7 +25,7 @@ zip_ref.extractall()
 zip_ref.close()
 
 print "renaming pybass.py"
-os.remove('pybass/__init__.py')
+if os.path.exists("pybass/__init__.py"): os.remove('pybass/__init__.py')
 os.rename('pybass/pybass.py', 'pybass/__init__.py')
 
 
