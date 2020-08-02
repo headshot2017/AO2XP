@@ -305,10 +305,10 @@ class lobby(QtGui.QWidget):
 
 	def get_sv_players(self, item, *args, **kwargs):
 		tempdata = ""
+		gotChars = False
 		hplist = []
 		areas = [[], [], [], []]
 		features = []
-		charlist = None
 		pingtimer = 150
 		readytick = -1
 		text = item.text()
@@ -413,6 +413,7 @@ class lobby(QtGui.QWidget):
 						continue
 					del network[0]
 					del network[len(network)-1]
+					gotChars = True
 					charlist = [ [char.split('&')[0], -1, "male"] for char in network ]
 					self.connectprogress.setText('Requesting music list (%d)...' % maxmusic)
 					self.tcp.send('RM#%')
@@ -431,7 +432,7 @@ class lobby(QtGui.QWidget):
 					print '[client]', 'received songs (%d)' % len(musiclist)
 					
 				elif header == 'CharsCheck':
-					if not self.connecting or not charlist:
+					if not self.connecting or not gotChars:
 						continue
 					network.pop(0)
 					network.pop(len(network)-1)

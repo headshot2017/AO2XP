@@ -1023,6 +1023,7 @@ class gui(QtGui.QWidget):
 				self.emotedropdown.addItem(emotelist[1] + ' ' + emotelist[2])
 
 		self.emotedropdown.setCurrentIndex(0)
+		print "set emote page"
 		self.set_emote_page()
 
 	def set_emote_page(self):
