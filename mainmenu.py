@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-import socket, thread, time, random
+import socket, thread, time, random, traceback, uuid
 from os.path import exists
 
-#AOpath = "base\\"
-AOpath = "I:\\aovanilla1.7.5\\client\\base\\"
+AOpath = "base/"
+#AOpath = "I:/aovanilla1.7.5/client/base/"
 
 class PicButton(QtGui.QAbstractButton):
 	def __init__(self, pixmap, parent=None):
@@ -26,6 +26,9 @@ class lobby(QtGui.QWidget):
 	tcp = None
 	tab = 0
 	msgbox_signal = QtCore.pyqtSignal(int, str, str)
+	moveToGameSignal = QtCore.pyqtSignal(list)
+	gotServers = QtCore.pyqtSignal(list)
+	gotOOCMsg = QtCore.pyqtSignal(str, str)
 
 	def __init__(self, parent=None):
 		super(lobby, self).__init__(parent)
@@ -33,14 +36,17 @@ class lobby(QtGui.QWidget):
 		self.connecting = False
 		self.svclicked = None
 		self.gamewindow = parent
-		self.pix_lobby = QtGui.QPixmap(AOpath+'themes\\default\\lobbybackground.png')
-		self.pix_btn_public = QtGui.QPixmap(AOpath+'themes\\default\\publicservers.png')
-		self.pix_btn_favs = QtGui.QPixmap(AOpath+'themes\\default\\favorites.png')
-		self.pix_btn_refresh = QtGui.QPixmap(AOpath+'themes\\default\\refresh.png')
-		self.pix_btn_addfav = QtGui.QPixmap(AOpath+'themes\\default\\addtofav.png')
-		self.pix_btn_connect = QtGui.QPixmap(AOpath+'themes\\default\\connect.png')
-		self.pix_connecting = QtGui.QPixmap(AOpath+'themes\\default\\loadingbackground.png')
+		self.pix_lobby = QtGui.QPixmap(AOpath+'themes/default/lobbybackground.png')
+		self.pix_btn_public = QtGui.QPixmap(AOpath+'themes/default/publicservers.png')
+		self.pix_btn_favs = QtGui.QPixmap(AOpath+'themes/default/favorites.png')
+		self.pix_btn_refresh = QtGui.QPixmap(AOpath+'themes/default/refresh.png')
+		self.pix_btn_addfav = QtGui.QPixmap(AOpath+'themes/default/addtofav.png')
+		self.pix_btn_connect = QtGui.QPixmap(AOpath+'themes/default/connect.png')
+		self.pix_connecting = QtGui.QPixmap(AOpath+'themes/default/loadingbackground.png')
 		self.msgbox_signal.connect(self.showMessageBox)
+		self.moveToGameSignal.connect(self.moveToGame)
+		self.gotServers.connect(self.onGetServers)
+		self.gotOOCMsg.connect(self.newOOCMessage)
 		
 		if exists(AOpath+'serverlist.txt'):
 			with open(AOpath+'serverlist.txt') as file:
@@ -57,7 +63,7 @@ class lobby(QtGui.QWidget):
 		self.connectingimg.hide()
 		
 		self.clientver = QtGui.QLabel(self)
-		self.clientver.setText('AO2XP 1.2 by Headshot')
+		self.clientver.setText('AO2XP 1.4 by Headshot')
 		self.clientver.resize(self.clientver.sizeHint())
 		self.clientver.move(self.pix_lobby.size().width() - self.clientver.size().width(), 0)
 	
@@ -158,7 +164,34 @@ class lobby(QtGui.QWidget):
 		self.joinooc = []
 		
 		thread.start_new_thread(self.connect_to_ms, ())
-	
+
+	def onGetServers(self, servers):
+		self.serverlist.clear()
+		self.actual_serverlist = []
+		del servers[0]
+		del servers[-1]
+		for svcontent in servers:
+			server = svcontent.split('&')
+			del server[-1]
+			name = server[0].decode('utf-8')
+			desc = server[1].decode('utf-8')
+			if len(server) <= 2:
+				ip = '0.0.0.0'
+				port = 0
+			elif len(server) == 3:
+				ip = server[2]
+				port = 27017
+			elif len(server) == 4:
+				ip = server[2]
+				port = int(server[3])
+			serveritem = QtGui.QListWidgetItem(name)
+			self.serverlist.addItem(serveritem)
+			self.actual_serverlist.append((ip, port, name, desc))
+
+	def moveToGame(self, stuff):
+		tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist = stuff
+		self.move_to_game(tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist)
+    
 	def onSettingsClicked(self):
 		self.gamewindow.showSettings()
 	
@@ -275,6 +308,7 @@ class lobby(QtGui.QWidget):
 		hplist = []
 		areas = [[], [], [], []]
 		features = []
+		charlist = None
 		pingtimer = 150
 		readytick = -1
 		text = item.text()
@@ -307,9 +341,9 @@ class lobby(QtGui.QWidget):
 				if readytick == 0:
 					readytick = -1
 					try:
-						self.move_to_game(self.tcp, charlist, musiclist, background, evidence, areas, features, self.joinooc, hplist)
+						self.moveToGameSignal.emit([self.tcp, charlist, musiclist, background, evidence, areas, features, self.joinooc, hplist])
 					except Exception as err:
-						self.msgbox_signal.emit(0, "Error caught while loading", str(err))
+						self.msgbox_signal.emit(0, "Error caught while loading", traceback.format_exc(err))
 						self.onClicked_cancelconnect()
 						return
 					
@@ -348,17 +382,17 @@ class lobby(QtGui.QWidget):
 					got_stuff = True
 				
 				elif header == "decryptor":
-					self.tcp.send("HI#vidya is a fucking shitshow#%")
+					self.tcp.send("HI#AO2XP %s#%%" % uuid.UUID(int=uuid.getnode()))
 				
 				elif header == "ID":
-					self.tcp.send("ID#AO2#69.1337.420#%") #need to send this to tsuserver3 servers in order to get feature list (FL)
+					self.tcp.send("ID#AO2#69.1337.420#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
 					
 				elif header == "FL":
 					features = network[1:]
 					print features
 				
 				elif header == 'BD':
-					reason = network[1].decode("utf-8") #new in AO2 2.6
+					reason = network[1].decode("utf-8") if len(network) > 1 else "Failed to receive ban reason (old server version?)" # new in AO2 2.6
 					self.onlineplayers.setText('Banned')
 					self.msgbox_signal.emit(0, "Banned", "Reason:\n"+reason)
 					self.tcp.close()
@@ -397,7 +431,7 @@ class lobby(QtGui.QWidget):
 					print '[client]', 'received songs (%d)' % len(musiclist)
 					
 				elif header == 'CharsCheck':
-					if not self.connecting:
+					if not self.connecting or not charlist:
 						continue
 					network.pop(0)
 					network.pop(len(network)-1)
@@ -478,6 +512,9 @@ class lobby(QtGui.QWidget):
 	def lobbychatlog_update(self):
 		self.lobbychatlog.verticalScrollBar().setValue(self.lobbychatlog.verticalScrollBar().maximum())
 
+	def newOOCMessage(self, name, text):
+		self.lobbychatlog.append('%s: %s' % (name, text))
+
 	def connect_to_ms(self):
 		tempdata = ""
 		self.ms_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -506,39 +543,19 @@ class lobby(QtGui.QWidget):
 				header = network[0]
 				
 				if header == "servercheok":
-					self.ms_tcp.send('HI#haha lol mods are gay#%ID#AO2XP by Headshot#1.2#%')
+					self.ms_tcp.send('HI#ao 2.8 apng will kill me#%ID#AO2XP by Headshot#1.4#%')
 					self.ms_tcp.send("ALL#%")
 				
 				elif header == 'DOOM':
 					print 'banned from masterserver'
-					self.msgbox_signal.emit(0, "WHEEZE", "You've been exiled from AO.\nWow, great job, now everyone hates you lmao")
+					self.msgbox_signal.emit(0, "WHEEZE", "You are exiled from AO")
 					self.ms_tcp.close()
 					thread.exit()
 					
 				elif header == 'ALL':
-					self.serverlist.clear()
-					self.actual_serverlist = []
-					network.pop(0)
-					network.pop(len(network) - 1)
-					for svcontent in network:
-						server = svcontent.split('&')
-						del server[len(server)-1]
-						name = server[0].decode('utf-8')
-						desc = server[1].decode('utf-8')
-						if len(server) <= 2:
-							ip = '0.0.0.0'
-							port = 0
-						elif len(server) == 3:
-							ip = server[2]
-							port = 27017
-						elif len(server) == 4:
-							ip = server[2]
-							port = int(server[3])
-						serveritem = QtGui.QListWidgetItem(name)
-						self.serverlist.addItem(serveritem)
-						self.actual_serverlist.append((ip, port, name, desc))
+					self.gotServers.emit(network)
 
 				elif header == 'CT':
 					name = network[1].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					chatmsg = network[2].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
-					self.lobbychatlog.append('%s: %s' % (name, chatmsg))
+					self.gotOOCMsg.emit(name, chatmsg)

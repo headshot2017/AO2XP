@@ -4,8 +4,13 @@ from os.path import exists
 from functools import partial
 from buttons import PixmapButton
 
-#AOpath = "base\\"
-AOpath = "I:\\aovanilla1.7.5\\client\\base\\"
+AOpath = "base/"
+#AOpath = "I:/aovanilla1.7.5/client/base/"
+
+def get_option(section, value, default=""):
+        tempini = ConfigParser()
+	tempini.read("base/ao2xp.ini")
+	return ini.read_ini(tempini, section, value, default)
 
 class CharIcon(QtGui.QLabel):
 	def __init__(self, parent, ind):
@@ -23,7 +28,7 @@ class charselect(QtGui.QWidget):
 		self.parent = parent
 		self.page = 0
 		self.image = QtGui.QLabel(self)
-		self.image.setPixmap(QtGui.QPixmap(AOpath+"themes\\default\\charselect_background.png"))
+		self.image.setPixmap(QtGui.QPixmap(AOpath+"themes/default/charselect_background.png"))
 		self.image.show()
 		
 		self.quittolobby = QtGui.QPushButton(self)
@@ -46,7 +51,7 @@ class charselect(QtGui.QWidget):
 		for i in range(self.max_chars_on_page):
 			self.buttons.append(CharIcon(self, i))
 			self.chartaken.append(QtGui.QLabel(self))
-			self.chartaken[i].setPixmap(QtGui.QPixmap(AOpath+"themes\\default\\char_taken.png"))
+			self.chartaken[i].setPixmap(QtGui.QPixmap(AOpath+"themes/default/char_taken.png"))
 			self.chartaken[i].hide()
 			
 			x_pos = (btn_width + x_spacing) * x_mod_count
@@ -60,11 +65,11 @@ class charselect(QtGui.QWidget):
 				y_mod_count += 1
 				x_mod_count = 0
 		
-		self.prevpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes\\default\\arrow_left.png"))
+		self.prevpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes/default/arrow_left.png"))
 		self.prevpage.move(left - self.prevpage.pixmap.size().width(), top + height)
 		self.prevpage.clicked.connect(self.prevPageButton)
 		self.prevpage.show()
-		self.nextpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes\\default\\arrow_right.png"))
+		self.nextpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes/default/arrow_right.png"))
 		self.nextpage.move(left + width, top + height)
 		self.nextpage.clicked.connect(self.nextPageButton)
 		self.nextpage.show()
@@ -106,10 +111,10 @@ class charselect(QtGui.QWidget):
 			else:
 				self.prevpage.hide()
 			
-			if exists(AOpath+"characters\\"+self.charlist[ind][0]+"\\char_icon.png"): # AO2
-				self.setBtnImage.emit(AOpath+"characters\\"+self.charlist[ind][0]+"\\char_icon.png", i)
-			elif exists(AOpath+"misc\\demothings\\"+self.charlist[ind][0]+"_char_icon.png"): # AO 1.7.5/1.8
-				self.setBtnImage.emit(AOpath+"misc\\demothings\\"+self.charlist[ind][0]+"_char_icon.png", i)
+			if exists(AOpath+"characters/"+self.charlist[ind][0]+"/char_icon.png"): # AO2
+				self.setBtnImage.emit(AOpath+"characters/"+self.charlist[ind][0]+"/char_icon.png", i)
+			elif exists(AOpath+"misc/demothings/"+self.charlist[ind][0]+"_char_icon.png"): # AO 1.7.5/1.8
+				self.setBtnImage.emit(AOpath+"misc/demothings/"+self.charlist[ind][0]+"_char_icon.png", i)
 			else:
 				self.setBtnImage.emit("placeholder.png", i)
 			
@@ -125,3 +130,7 @@ class charselect(QtGui.QWidget):
 	
 	def onCharClicked(self, ind):
 		self.parent.tcp.send("CC#0#"+str(ind+(self.page*self.max_chars_on_page))+"#ur mom gay#%")
+
+	def show(self):
+		super(charselect, self).show()
+		self.parent.gamewindow.setFixedSize(714, 668)

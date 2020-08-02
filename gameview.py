@@ -5,8 +5,8 @@ from os.path import exists
 from functools import partial
 from ConfigParser import ConfigParser
 
-#AOpath = "base/"
-AOpath = 'I:/aovanilla1.7.5/client/base/'
+AOpath = "base/"
+#AOpath = 'I:/aovanilla1.7.5/client/base/'
 
 PREANIM = 2
 CHARNAME = 3
@@ -59,7 +59,12 @@ def decode_ao_str(text):
 	
 def get_char_ini(char, section, value, default=""):
 	tempini = ConfigParser()
-	tempini.read(AOpath + 'characters\\' + char + '\\char.ini')
+	tempini.read(AOpath + 'characters/' + char + '/char.ini')
+	return ini.read_ini(tempini, section, value, default)
+
+def get_option(section, value, default=""):
+        tempini = ConfigParser()
+	tempini.read("base/ao2xp.ini")
 	return ini.read_ini(tempini, section, value, default)
 
 def get_text_color(textcolor):
@@ -67,7 +72,7 @@ def get_text_color(textcolor):
 		return QtGui.QColor(255, 255, 255)
 	elif textcolor == 1:
 		return QtGui.QColor(0, 255, 0)
-	elif textcolor == 2: #OH FUCK MOD
+	elif textcolor == 2: # OH FUCK MOD
 		return QtGui.QColor(255, 0, 0)
 	elif textcolor == 3:
 		return QtGui.QColor(255, 165, 0)
@@ -130,6 +135,8 @@ class ChatLogs(QtGui.QTextEdit):
 					self.logfile = open("chatlogs/IC_%d%.2d%.2d_on_%.2d.%.2d.%.2d.txt" % (currtime[0], currtime[1], currtime[2], currtime[3], currtime[4], currtime[5]), "w")
 				else:
 					self.logfile = open("chatlogs/OOC_%d%.2d%.2d_on_%.2d.%.2d.%.2d.txt" % (currtime[0], currtime[1], currtime[2], currtime[3], currtime[4], currtime[5]), "w")
+		else:
+                        self.logfile = None
 	
 	def __del__(self):
 		if self.savelog:
@@ -178,7 +185,7 @@ class AOCharMovie(QtGui.QLabel):
 		self.m_flipped = flip
 	
 	def play(self, p_char, p_emote, emote_prefix):
-		if p_emote[0] == "/" or p_emote[0] == "\\":
+		if p_emote[0] == "/" or p_emote[0] == "/":
 			p_emote = p_emote[1:]
 		elif "../../characters" in p_emote:
 			print p_emote
@@ -188,9 +195,9 @@ class AOCharMovie(QtGui.QLabel):
 			emote_prefix = ""
 			p_emote = emote
 		
-		original_path = AOpath+"characters\\"+p_char+"\\"+emote_prefix+p_emote+".gif"	
-		alt_path = AOpath+"characters\\"+p_char+"\\"+p_emote+".png"
-		placeholder_path = AOpath+"themes\\default\\placeholder.gif"
+		original_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".gif"	
+		alt_path = AOpath+"characters/"+p_char+"/"+p_emote+".png"
+		placeholder_path = AOpath+"themes/default/placeholder.gif"
 		gif_path = ""
 		
 		if exists(original_path):
@@ -199,8 +206,8 @@ class AOCharMovie(QtGui.QLabel):
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
 				url = url.replace(" ", "%20")
-				if not exists(AOpath+"characters\\"+p_char): # gotta make sure the character folder exists, better safe than sorry
-					os.mkdir(AOpath+"characters\\"+p_char)
+				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
+					os.mkdir(AOpath+"characters/"+p_char)
 				thread.start_new_thread(download_thread, (url, original_path))
 			
 			if exists(alt_path):
@@ -209,14 +216,14 @@ class AOCharMovie(QtGui.QLabel):
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".png"
 					url = url.replace(" ", "%20")
-					if not exists(AOpath+"characters\\"+p_char): # gotta make sure the character folder exists, better safe than sorry
-						os.mkdir(AOpath+"characters\\"+p_char)
+					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
+						os.mkdir(AOpath+"characters/"+p_char)
 					thread.start_new_thread(download_thread, (url, alt_path))
 		
-					if exists(placeholder_path):
-						gif_path = placeholder_path
-					else:
-						gif_path = ""
+				if exists(placeholder_path):
+					gif_path = placeholder_path
+				else:
+					gif_path = ""
 		
 		self.m_movie.stop()
 		self.m_movie.setFileName(gif_path)
@@ -225,7 +232,7 @@ class AOCharMovie(QtGui.QLabel):
 		self.m_movie.start()
 	
 	def play_pre(self, p_char, p_emote, duration):
-		gif_path = AOpath+"characters\\"+p_char+"\\"+p_emote+".gif"
+		gif_path = AOpath+"characters/"+p_char+"/"+p_emote+".gif"
 		
 		self.m_movie.stop()
 		self.clear()
@@ -261,7 +268,7 @@ class AOCharMovie(QtGui.QLabel):
 		self.play(p_char, p_emote, "")
 	
 	def play_talking(self, p_char, p_emote):
-		gif_path = AOpath + 'characters\\' + p_char + '\\(b)' + p_emote + '.gif'
+		gif_path = AOpath + 'characters/' + p_char + '/(b)' + p_emote + '.gif'
 		
 		self.m_movie.stop()
 		self.clear()
@@ -273,7 +280,7 @@ class AOCharMovie(QtGui.QLabel):
 		self.play(p_char, p_emote, '(b)')
 
 	def play_idle(self, p_char, p_emote):
-		gif_path = AOpath + 'characters\\' + p_char + '\\(a)' + p_emote + '.gif'
+		gif_path = AOpath + 'characters/' + p_char + '/(a)' + p_emote + '.gif'
 		
 		self.m_movie.stop()
 		self.clear()
@@ -291,7 +298,11 @@ class AOCharMovie(QtGui.QLabel):
 
 	@QtCore.pyqtSlot(int)
 	def frame_change(self, n_frame):
-		f_pixmap = QtGui.QPixmap.fromImage(self.m_movie.currentImage().mirrored(self.m_flipped, False))
+		f_img = self.m_movie.currentImage().mirrored(self.m_flipped, False)
+		if f_img.size().width() != 256 or f_img.size().height() != 192:
+			f_img = f_img.scaled(256, 192, transformMode=QtCore.Qt.SmoothTransformation)
+
+		f_pixmap = QtGui.QPixmap.fromImage(f_img)
 		self.setPixmap(f_pixmap)
 		
 		if self.m_movie.frameCount() - 1 == n_frame and self.play_once:
@@ -321,12 +332,12 @@ class AOMovie(QtGui.QLabel):
 		
 		custom_path = ""
 		if p_gif == "custom":
-			custom_path = AOpath+"characters\\"+p_char+"\\"+p_gif+".gif"
+			custom_path = AOpath+"characters/"+p_char+"/"+p_gif+".gif"
 		else:
-			custom_path = AOpath+"characters\\"+p_char+"\\"+p_gif+"_bubble.gif"
+			custom_path = AOpath+"characters/"+p_char+"/"+p_gif+"_bubble.gif"
 		
-		theme_path = AOpath+"themes\\default\\"+p_gif+".gif"
-		placeholder_path = AOpath+"themes\\default\\placeholder.gif"
+		theme_path = AOpath+"themes/default/"+p_gif+".gif"
+		placeholder_path = AOpath+"themes/default/placeholder.gif"
 		
 		if exists(custom_path):
 			gif_path = custom_path
@@ -370,9 +381,9 @@ class ZoomLines(QtGui.QLabel):
 			return
 		self.show()
 		if dir == 0:
-			self.movie.setFileName(AOpath + 'themes\\default\\defense_speedlines.gif')
+			self.movie.setFileName(AOpath + 'themes/default/defense_speedlines.gif')
 		else:
-			self.movie.setFileName(AOpath + 'themes\\default\\prosecution_speedlines.gif')
+			self.movie.setFileName(AOpath + 'themes/default/prosecution_speedlines.gif')
 		self.movie.start()
 
 
@@ -403,14 +414,14 @@ class WTCE_View(QtGui.QLabel):
 	def showWTCE(self, wtce, variant=0):
 		self.finished()
 		if wtce == 'testimony1':
-			self.movie.setFileName(AOpath + 'themes\\default\\witnesstestimony.gif')
+			self.movie.setFileName(AOpath + 'themes/default/witnesstestimony.gif')
 		elif wtce == 'testimony2':
-			self.movie.setFileName(AOpath + 'themes\\default\\crossexamination.gif')
+			self.movie.setFileName(AOpath + 'themes/default/crossexamination.gif')
 		elif wtce == "judgeruling":
 			if variant == 0:
-				self.movie.setFileName(AOpath + 'themes\\default\\notguilty.gif')
+				self.movie.setFileName(AOpath + 'themes/default/notguilty.gif')
 			elif variant == 1:
-				self.movie.setFileName(AOpath + 'themes\\default\\guilty.gif')
+				self.movie.setFileName(AOpath + 'themes/default/guilty.gif')
 		else:
 			return
 		self.show()
@@ -496,11 +507,11 @@ class gui(QtGui.QWidget):
 		self.sidechar.hide()
 		
 		self.bench = QtGui.QLabel(self.viewport)
-		bench = QtGui.QPixmap(AOpath + 'background\\default\\defensedesk.png')
-		self.court.setPixmap(QtGui.QPixmap(AOpath + 'background\\default\\defenseempty.png'))
+		bench = QtGui.QPixmap(AOpath + 'background/default/defensedesk.png')
+		self.court.setPixmap(QtGui.QPixmap(AOpath + 'background/default/defenseempty.png'))
 		self.bench.setPixmap(bench)
 		self.chatbox = QtGui.QLabel(self)
-		chatbox = QtGui.QPixmap(AOpath + 'themes\\default\\chatmed.png')
+		chatbox = QtGui.QPixmap(AOpath + 'themes/default/chatmed.png')
 		chatboxheight = chatbox.size().height()
 		self.chatbox.setPixmap(chatbox)
 		self.chatbox.move(0, 192 - chatboxheight)
@@ -533,7 +544,7 @@ class gui(QtGui.QWidget):
 		self.objectionview.done.connect(self.objection_done)
 		
 		self.whiteflashlab = QtGui.QLabel(self)
-		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes\\default\\realizationflash.png'))
+		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/realizationflash.png'))
 		self.whiteflashlab.setGeometry(0, 0, 256, 192)
 		self.whiteflashlab.hide()
 		self.whiteflash = QtCore.QTimer()
@@ -542,30 +553,22 @@ class gui(QtGui.QWidget):
 		
 		self.ooclog = ChatLogs(self, 1)
 		self.ooclog.setReadOnly(True)
-		self.ooclog.setGeometry(714 - 288, 0, 288, 256)
 		self.ooclog.setStyleSheet('background-color: rgb(139, 139, 139);')
 		self.ooclog.textChanged.connect(self.ooclog_update)
 		
 		self.oocnameinput = QtGui.QLineEdit(self)
 		self.oocnameinput.setPlaceholderText('Enter a name...')
-		self.oocnameinput.resize(self.oocnameinput.sizeHint().width() - 32, self.oocnameinput.sizeHint().height())
 		self.oocnameinput.setStyleSheet('background-color: rgb(139, 139, 139);')
-		self.oocnameinput.move(714 - 288, 256)
 		
 		self.oocinput = QtGui.QLineEdit(self)
 		self.oocinput.setPlaceholderText('Server chat/OOC chat...')
 		self.oocinput.setStyleSheet('background-color: rgb(139, 139, 139);')
-		self.oocinput.resize(187, self.oocinput.sizeHint().height())
-		self.oocinput.move(714 - 288 + self.oocnameinput.size().width(), 256)
 		self.oocinput.returnPressed.connect(self.onOOCreturn)
 		
 		self.ooclogin = QtGui.QPushButton("Login", self)
-		self.ooclogin.resize(48, 20)
-		self.ooclogin.move(714 - (self.ooclogin.size().width()), self.oocinput.y() + self.ooclogin.size().height())
 		self.ooclogin.clicked.connect(self.onOOCLoginBtn)
 		
 		self.musicitems = QtGui.QListWidget(self)
-		self.musicitems.setGeometry(714 - 288, 348, 288, 320)
 		self.musicitems.itemDoubleClicked.connect(self.onMusicClick)
 		
 		self.gametabs = QtGui.QTabWidget(self)
@@ -579,41 +582,30 @@ class gui(QtGui.QWidget):
 		
 		self.icLog = ChatLogs(self.gametab_log, 0, self.ooclog.logfile)
 		self.icLog.setReadOnly(True)
-		self.icLog.setGeometry(8, 8, 714 - 304 - 22, 212)
 		self.icLog.textChanged.connect(self.icLogChanged)
 		
 		self.evidencedropdown = QtGui.QComboBox(self.gametab_evidence)
-		self.evidencedropdown.setGeometry(8, 8, 192, 20)
 		self.evidencedropdown.currentIndexChanged.connect(self.changeEvidence)
 		self.evidencedesc = QtGui.QTextEdit(self.gametab_evidence)
 		self.evidencedesc.setReadOnly(True)
-		self.evidencedesc.setGeometry(8, 108, 714 - 304 - 22, 112)
 		self.evidenceimage = QtGui.QLabel(self.gametab_evidence)
-		self.evidenceimage.setPixmap(QtGui.QPixmap(AOpath + 'evidence\\empty.png'))
-		self.evidenceimage.setGeometry(326, 8, 70, 70)
+		self.evidenceimage.setPixmap(QtGui.QPixmap(AOpath + 'evidence/empty.png'))
 		self.evidenceimage.show()
 		self.evidenceadd = QtGui.QPushButton(self.gametab_evidence)
 		self.evidenceadd.setText('Add')
-		self.evidenceadd.move(8, 32)
 		self.evidenceadd.clicked.connect(self.onAddEvidence)
 		self.evidenceedit = QtGui.QPushButton(self.gametab_evidence)
 		self.evidenceedit.setText('Edit')
-		self.evidenceedit.move(8, 56)
 		self.evidenceedit.clicked.connect(self.onEditEvidence)
 		self.evidencedelete = QtGui.QPushButton(self.gametab_evidence)
 		self.evidencedelete.setText('Delete')
-		self.evidencedelete.move(8, 80)
 		self.evidencedelete.clicked.connect(self.onDeleteEvidence)
 		self.evidencepresent = PresentButton(self, self.gametab_evidence)
-		self.evidencepresent.move((714 - 304 - 22) / 2 - self.evidencepresent.button_off.size().width() / 2, self.evidencedesc.y() - self.evidencepresent.button_off.size().height())
 		
 		self.msgqueueList = QtGui.QListWidget(self.gametab_msgqueue)
-		self.msgqueueList.setGeometry(8, 8, 714 - 304 - 22, 180)
 		self.msgqueueList.itemClicked.connect(self.onClicked_msgqueue)
 		self.removeQueue = QtGui.QPushButton(self.gametab_msgqueue)
 		self.removeQueue.setText('Delete')
-		self.removeQueue.resize(self.removeQueue.sizeHint())
-		self.removeQueue.move(8, self.msgqueueList.size().height() + 16)
 		self.removeQueue.clicked.connect(self.onClicked_removeQueue)
 		
 		self.unmutedlist = QtGui.QListWidget(self.gametab_mute)
@@ -626,54 +618,35 @@ class gui(QtGui.QWidget):
 		self.mutedlabel.setText('Muted')
 		self.mutebtn.setText('>>')
 		self.unmutebtn.setText('<<')
-		self.notmutedlabel.move(8, 8)
-		self.unmutedlist.setGeometry(8, 24, 160, 192)
-		self.mutedlist.setGeometry(238, 24, 160, 192)
-		self.mutedlabel.move(238 + self.mutedlist.size().width() - self.mutedlist.size().width() - 8, 8)
-		self.mutebtn.setGeometry((714 - 304) / 2 - 26, 64, 48, 32)
-		self.unmutebtn.setGeometry((714 - 304) / 2 - 26, 128, 48, 32)
 		self.mutebtn.clicked.connect(self.onMuteClick)
 		self.unmutebtn.clicked.connect(self.onUnmuteClick)
 		self.mutedlist.itemClicked.connect(self.changeMuteIndex)
 		self.unmutedlist.itemClicked.connect(self.changeUnmuteIndex)
 		
 		self.iniswaplist = QtGui.QComboBox(self.gametab_iniswap)
-		self.iniswaplist.setGeometry(8, 8, 192, self.iniswaplist.sizeHint().height())
 		self.iniswaplist.currentIndexChanged.connect(self.iniswap_index_change)
 		self.iniswapconfirm = QtGui.QPushButton(self.gametab_iniswap)
 		self.iniswapconfirm.setText('Swap')
-		self.iniswapconfirm.resize(self.iniswapconfirm.sizeHint())
-		self.iniswapconfirm.move(714 - 304 - 22 - self.iniswapconfirm.size().width(), 8)
 		self.iniswapconfirm.clicked.connect(self.iniswap_confirm)
 		self.iniswapreset = QtGui.QPushButton(self.gametab_iniswap)
 		self.iniswapreset.setText('Reset')
-		self.iniswapreset.resize(self.iniswapconfirm.size())
-		self.iniswapreset.move(714 - 304 - 22 - self.iniswapconfirm.size().width(), 16 + self.iniswapconfirm.size().height())
 		self.iniswapreset.clicked.connect(self.resetIniSwap)
 		self.iniswapinfo = QtGui.QLabel(self.gametab_iniswap)
 		self.iniswapinfo.setText('Not swapped')
-		self.iniswapinfo.setGeometry(8, 32, 192, 24)
 		self.iniswaprefresh = QtGui.QPushButton(self.gametab_iniswap)
 		self.iniswaprefresh.setText('Refresh characters')
-		self.iniswaprefresh.resize(self.iniswaprefresh.sizeHint())
-		self.iniswaprefresh.move(8, 64)
 		self.iniswaprefresh.clicked.connect(self.loadSwapCharacters)
 		
 		self.paircheckbox = QtGui.QCheckBox(self.gametab_pair)
 		self.paircheckbox.setChecked(False)
-		self.paircheckbox.setGeometry(16, 16, 128, 24)
 		self.pairdropdown = QtGui.QComboBox(self.gametab_pair)
-		self.pairdropdown.setGeometry(112, 64, 192, 18)
 		self.pairdropdown_l = QtGui.QLabel("Pair with...", self.gametab_pair)
 		self.pairdropdown_l.move(self.pairdropdown.x() - 64, self.pairdropdown.y()+2)
 		self.pairoffset = QtGui.QSlider(QtCore.Qt.Horizontal, self.gametab_pair)
 		self.pairoffset.setRange(-100, 100)
 		self.pairoffset.setValue(0)
-		self.pairoffset.setGeometry(114, 128, 192, 24)
 		self.pairoffset_l = QtGui.QLabel("Position offset", self.gametab_pair)
-		self.pairoffset_l.move(self.pairoffset.x() - 88, self.pairoffset.y()+4)
 		self.pairoffsetreset = QtGui.QPushButton("Reset", self.gametab_pair)
-		self.pairoffsetreset.move(self.pairoffset.x() + self.pairoffset.size().width() + 8, self.pairoffset.y())
 		self.pairoffsetreset.clicked.connect(partial(self.pairoffset.setValue, 0))
 		
 		self.misc_layout = QtGui.QVBoxLayout(self.gametab_misc)
@@ -684,17 +657,13 @@ class gui(QtGui.QWidget):
 		self.spacebartext = QtGui.QCheckBox()
 		self.spacebartext.setChecked(False)
 		self.spacebartext.setText("S p a c i n g")
-		self.spacebartext.move(self.mocktext.x(), self.mocktext.y()+24)
 		self.autocaps = QtGui.QCheckBox()
 		self.autocaps.setChecked(False)
 		self.autocaps.setText("Automatic caps and period")
-		self.autocaps.move(self.spacebartext.x(), self.spacebartext.y()+24)
 		self.misc_layout.addWidget(self.mocktext)
 		self.misc_layout.addWidget(self.spacebartext)
 		self.misc_layout.addWidget(self.autocaps)
 		
-		self.gametabs.move(8, 402)
-		self.gametabs.resize(714 - 304, 256)
 		self.gametabs.addTab(self.gametab_log, 'Game log')
 		self.gametabs.addTab(self.gametab_evidence, 'Evidence')
 		self.gametabs.addTab(self.gametab_msgqueue, 'Message queue')
@@ -777,7 +746,7 @@ class gui(QtGui.QWidget):
 		self.nextemotepage = NextEmoteButton(self, 236, 253)
 		self.nextemotepage.show()
 		self.realizationbtn = buttons.RealizationButton(self, 265, 192)
-		self.realizationsnd = BASS_StreamCreateFile(False, AOpath + 'sounds\\general\\sfx-realization.wav', 0, 0, 0)
+		self.realizationsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-realization.wav', 0, 0, 0)
 		self.customobject = buttons.CustomObjection(self, 250, 312)
 		self.holditbtn = buttons.Objections(self, 10, 312, 1)
 		self.objectbtn = buttons.Objections(self, 90, 312, 2)
@@ -823,21 +792,14 @@ class gui(QtGui.QWidget):
 		self.musicslider.setValue(100)
 		self.soundslider.setValue(100)
 		self.blipslider.setValue(100)
-		self.musicslider.setGeometry(self.oocnameinput.x(), self.oocnameinput.y()+24, 192, 16)
-		self.soundslider.setGeometry(self.oocnameinput.x(), self.oocnameinput.y()+48, 192, 16)
-		self.blipslider.setGeometry(self.oocnameinput.x(), self.oocnameinput.y()+72, 192, 16)
 		self.musicslider.sliderMoved.connect(self.changeMusicVolume)
 		self.soundslider.sliderMoved.connect(self.changeSoundVolume)
 		self.blipslider.valueChanged.connect(self.changeBlipVolume)
 		self.sliderlabel1 = QtGui.QLabel("Music", self)
 		self.sliderlabel2 = QtGui.QLabel("SFX", self)
 		self.sliderlabel3 = QtGui.QLabel("Blips", self)
-		self.sliderlabel1.move(self.musicslider.x() + self.musicslider.size().width()+8, self.musicslider.y())
-		self.sliderlabel2.move(self.soundslider.x() + self.soundslider.size().width()+8, self.soundslider.y())
-		self.sliderlabel3.move(self.blipslider.x() + self.blipslider.size().width()+8, self.blipslider.y())
 		
 		self.pinglabel = QtGui.QLabel(self)
-		self.pinglabel.setGeometry(self.sliderlabel3.x() + 32, self.sliderlabel3.y(), 96, 14)
 		
 		self.name.show()
 		self.char.show()
@@ -928,15 +890,12 @@ class gui(QtGui.QWidget):
 		self.showname = str(text.toUtf8())
 
 	def setEvidenceImg(self, guiobj, image):
-		f_image = str(image)
-		f_guiobj = str(guiobj)
-		
-		if exists(AOpath + 'evidence\\' + f_image):
-			exec f_guiobj+'.setPixmap(QtGui.QPixmap(AOpath+"evidence/%s"))' % f_image
+		if exists(AOpath + 'evidence/' + image):
+			guiobj.setPixmap(QtGui.QPixmap(AOpath + "evidence/%s" % image))
 		else:
-			exec f_guiobj+".setPixmap(QtGui.QPixmap(AOpath + 'themes\\default\\evidence_selected.png'))"
+			guiobj.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/evidence_selected.png'))
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download evidence"):
-				url = "http://s3.wasabisys.com/webao/base/evidence/"+f_image.lower()
+				url = "http://s3.wasabisys.com/webao/base/evidence/"+image.lower()
 				url = url.replace("evidence/../", "")
 				path = AOpath+"evidence/"+image
 				path = path.replace("evidence/../", "")
@@ -1031,6 +990,8 @@ class gui(QtGui.QWidget):
 			self.tcp.send("RT#judgeruling#" +str(variant)+ "#%")
 	
 	def loadCharacter(self, charname):
+		exec open("base/ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
+
 		self.emotedropdown.clear()
 		self.msgqueueList.clear()
 		self.msgqueue = []
@@ -1091,9 +1052,9 @@ class gui(QtGui.QWidget):
 		for n_emote in range(emotes_on_page):
 			n_real_emote = n_emote + self.current_emote_page * self.max_emotes_on_page
 			if n_real_emote == self.selectedemote:
-				self.emotebuttons[n_emote].setPixmap(QtGui.QPixmap(AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(n_real_emote + 1) + '_on.png'))
+				self.emotebuttons[n_emote].setPixmap(QtGui.QPixmap(AOpath + 'characters/' + self.charname + '/emotions/button' + str(n_real_emote + 1) + '_on.png'))
 			else:
-				self.emotebuttons[n_emote].setPixmap(QtGui.QPixmap(AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(n_real_emote + 1) + '_off.png'))
+				self.emotebuttons[n_emote].setPixmap(QtGui.QPixmap(AOpath + 'characters/' + self.charname + '/emotions/button' + str(n_real_emote + 1) + '_off.png'))
 			self.emotebuttons[n_emote].show()
 
 	def iniswap_index_change(self, ind):
@@ -1103,7 +1064,7 @@ class gui(QtGui.QWidget):
 		self.charsfolder = []
 		self.iniswaplist.clear()
 		for folder in os.listdir(AOpath + 'characters'):
-			if exists(AOpath + 'characters\\' + folder + '\\char.ini'):
+			if exists(AOpath + 'characters/' + folder + '/char.ini'):
 				self.charsfolder.append(folder)
 				self.iniswaplist.addItem(folder)
 
@@ -1143,7 +1104,7 @@ class gui(QtGui.QWidget):
 			self.tcp.send("ZZ#%")
 
 	def onClick_changeChar(self):
-		self.tcp.send('RD#%')
+		#self.tcp.send('RD#%')
 		self.charselect.show()
 
 	def changeFlipCheck(self, on):
@@ -1177,10 +1138,7 @@ class gui(QtGui.QWidget):
 			return
 		self.selectedevi = ind
 		self.evidencedesc.setText(self.evidence[ind][1])
-		evithread = anythingThread('setEvidenceImg(QString, QString)', "self.evidenceimage", self.evidence[ind][2])
-		self.connect(evithread, QtCore.SIGNAL('setEvidenceImg(QString, QString)'), self.setEvidenceImg)
-		evithread.start()
-		del evithread
+		self.setEvidenceImg(self.evidenceimage, self.evidence[ind][2])
 
 	def buttonthread(self, ind, img):
 		if ind < self.max_emotes_on_page:
@@ -1195,9 +1153,9 @@ class gui(QtGui.QWidget):
 			self.selectedemote = ind
 		for button in self.emotebuttons:
 			if button.emoteid == ind:
-				button.setPixmap(QtGui.QPixmap(AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(button.emoteid + self.current_emote_page * self.max_emotes_on_page + 1) + '_on.png'))
+				button.setPixmap(QtGui.QPixmap(AOpath + 'characters/' + self.charname + '/emotions/button' + str(button.emoteid + self.current_emote_page * self.max_emotes_on_page + 1) + '_on.png'))
 			else:
-				button.setPixmap(QtGui.QPixmap(AOpath + 'characters\\' + self.charname + '\\emotions\\button' + str(button.emoteid + self.current_emote_page * self.max_emotes_on_page + 1) + '_off.png'))
+				button.setPixmap(QtGui.QPixmap(AOpath + 'characters/' + self.charname + '/emotions/button' + str(button.emoteid + self.current_emote_page * self.max_emotes_on_page + 1) + '_off.png'))
 
 	def setChatColor(self, ind):
 		self.mychatcolor = ind
@@ -1259,7 +1217,7 @@ class gui(QtGui.QWidget):
 		self.oocinput.clear()
 
 	def onICreturn(self):
-		text = str(self.icchatinput.text().toUtf8()).replace('#', '<num>').replace('%', '<percent>').replace('&', '<and>').replace('$', '<dollar>').replace('\\n', '\n')
+		text = str(self.icchatinput.text().toUtf8()).replace('#', '<num>').replace('%', '<percent>').replace('&', '<and>').replace('$', '<dollar>').replace('/n', '\n')
 		if not text:
 			return
 		
@@ -1352,17 +1310,18 @@ class gui(QtGui.QWidget):
 		self.realizationbtn.setPressed(False)
 
 	def setBackground(self, bg):
-		if not exists(AOpath + 'background\\' + bg):
+		if not exists(AOpath + 'background/' + bg):
 			bg = 'default'
-		self.side_def = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\defenseempty.png')
-		self.bench_def = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\defensedesk.png')
-		self.side_pro = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\prosecutorempty.png')
-		self.bench_pro = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\prosecutiondesk.png')
-		self.side_wit = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\witnessempty.png')
-		self.bench_wit = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\stand.png')
-		self.side_hld = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\helperstand.png')
-		self.side_hlp = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\prohelperstand.png')
-		self.side_jud = QtGui.QPixmap(AOpath + 'background\\' + bg + '\\judgestand.png')
+		self.side_def = QtGui.QPixmap(AOpath + 'background/' + bg + '/defenseempty.png')
+		self.bench_def = QtGui.QPixmap(AOpath + 'background/' + bg + '/defensedesk.png')
+		self.side_pro = QtGui.QPixmap(AOpath + 'background/' + bg + '/prosecutorempty.png')
+		self.bench_pro = QtGui.QPixmap(AOpath + 'background/' + bg + '/prosecutiondesk.png')
+		self.side_wit = QtGui.QPixmap(AOpath + 'background/' + bg + '/witnessempty.png')
+		self.bench_wit = QtGui.QPixmap(AOpath + 'background/' + bg + '/stand.png')
+		self.side_hld = QtGui.QPixmap(AOpath + 'background/' + bg + '/helperstand.png')
+		self.side_hlp = QtGui.QPixmap(AOpath + 'background/' + bg + '/prohelperstand.png')
+		self.side_jud = QtGui.QPixmap(AOpath + 'background/' + bg + '/judgestand.png')
+		self.side_sea = QtGui.QPixmap(AOpath + 'background/' + bg + '/seance.png')
 
 	def netmsg_hp(self, type, health):
 		if type == 1:
@@ -1520,6 +1479,10 @@ class gui(QtGui.QWidget):
 			self.court.setPixmap(self.side_jud)
 			self.bench.hide()
 			self.presentedevi.move(16, 16)
+		elif side == 'sea':
+			self.bench.hide()
+			self.court.setPixmap(self.side_jud if self.side_sea.isNull() else self.side_sea)
+			self.presentedevi.move(16, 16)
 	
 	def objection_done(self):
 		self.handle_chatmessage_2()
@@ -1560,7 +1523,11 @@ class gui(QtGui.QWidget):
 			self.sidechar.move(0,0)
 			self.char.move(0,0)
 		else:
-			got_other_charid = int(self.m_chatmessage[OTHER_CHARID])
+			if "effects" in self.features:
+				got_other_charid = int(self.m_chatmessage[OTHER_CHARID].split("^")[0])
+			else:
+				got_other_charid = int(self.m_chatmessage[OTHER_CHARID])
+
 			if got_other_charid > -1:
 				self.sidechar.show()
 				
@@ -1632,7 +1599,7 @@ class gui(QtGui.QWidget):
 				self.sidechar.move(0, 0)
 				self.char.move(0, 0)
 		
-		if emote_mod == 1 or emote_mod == 2 or emote_mod == 6:
+		if (emote_mod == 1 or emote_mod == 6 and self.m_chatmessage[PREANIM] != "-") or emote_mod == 2:
 			self.play_preanim(False)
 		elif emote_mod == 0 or emote_mod == 5:
 			if self.m_chatmessage[NO_INTERRUPT] == "0":
@@ -1654,7 +1621,7 @@ class gui(QtGui.QWidget):
 		else:
 			preanim_duration = ao2_duration
 			
-		anim_to_find = AOpath+"characters\\"+f_char+"\\"+f_preanim+".gif"
+		anim_to_find = AOpath+"characters/"+f_char+"/"+f_preanim+".gif"
 		if not exists(anim_to_find) or preanim_duration < 0:
 			if noninterrupting:
 				self.anim_state = 4
@@ -1695,7 +1662,7 @@ class gui(QtGui.QWidget):
 			f_image = self.evidence[f_evi_id-1][2]
 			is_left_side = not (f_side == "def" or f_side == "hlp" or f_side == "jud" or f_side == "jur")
 			
-			self.setEvidenceImg("self.presentedevi", f_image)
+			self.setEvidenceImg(self.presentedevi, f_image)
 			
 			if not is_left_side:
 				self.presentedevi.move(170, 16)
@@ -1777,7 +1744,7 @@ class gui(QtGui.QWidget):
 		
 		charid = int(self.m_chatmessage[CHAR_ID])
 		self.blip = self.charlist[charid][2]
-		self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds\\general\\sfx-blip"+self.blip+".wav", 0, 0, 0)
+		self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".wav", 0, 0, 0)
 		BASS_ChannelSetAttribute(self.blipsnd, BASS_ATTRIB_VOL, self.blipslider.value() / 100.0)
 		
 		self.text_state = 1
@@ -1947,16 +1914,16 @@ class gui(QtGui.QWidget):
 			objecting = 'custom'
 		
 		if objecting:
-			if exists(AOpath + 'characters\\' + charname + '\\' + objecting + '.wav'):
-				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'characters\\' + charname + '\\' + objecting + '.wav', 0, 0, 0)
+			if exists(AOpath + 'characters/' + charname + '/' + objecting + '.wav'):
+				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'characters/' + charname + '/' + objecting + '.wav', 0, 0, 0)
 			else:
 				self.objectsnd = None
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download sounds"):
-					if not exists(AOpath+"characters\\"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
-						os.mkdir(AOpath+"characters\\"+charname.lower())
+					if not exists(AOpath+"characters/"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
+						os.mkdir(AOpath+"characters/"+charname.lower())
 					thread.start_new_thread(download_thread, ("http://s3.wasabisys.com/webao/base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
 				
-				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds\\general\\sfx-objection.wav', 0, 0, 0)
+				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-objection.wav', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.objectsnd, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.objectsnd, True)
 	
@@ -1972,8 +1939,8 @@ class gui(QtGui.QWidget):
 			if BASS_ChannelIsActive(self.sound):
 				BASS_ChannelStop(self.sound)
 			BASS_StreamFree(self.sound)
-		if exists(AOpath + 'sounds\\general\\' + sfx + '.wav'):
-			self.sound = BASS_StreamCreateFile(False, AOpath + 'sounds\\general\\' + sfx + '.wav', 0, 0, 0)
+		if exists(AOpath + 'sounds/general/' + sfx + '.wav'):
+			self.sound = BASS_StreamCreateFile(False, AOpath + 'sounds/general/' + sfx + '.wav', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.sound, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.sound, True)
 
@@ -1985,14 +1952,20 @@ class gui(QtGui.QWidget):
 			if BASS_ChannelIsActive(self.music):
 				BASS_ChannelStop(self.music)
 			BASS_StreamFree(self.music)
-		if exists(AOpath + 'sounds\\music\\' + mus):
-			self.music = BASS_StreamCreateFile(False, AOpath + 'sounds\\music\\' + mus, 0, 0, 0)
+		
+		if exists(AOpath + 'sounds/music/' + mus):
+			self.music = BASS_StreamCreateFile(False, AOpath + 'sounds/music/' + mus, 0, 0, 0)
 			BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 			BASS_ChannelPlay(self.music, True)
+			
 		elif ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download music"):
-			self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/webao/base/sounds/music/' + mus.lower(), 0, 0, DOWNLOADPROC(), 0)
+			self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
 			if self.music:
 				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
+				BASS_ChannelPlay(self.music, True)
+			else:
+                                self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/aov-webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+                                BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 				BASS_ChannelPlay(self.music, True)
 
 	def stopMusic(self):
@@ -2052,7 +2025,7 @@ class gui(QtGui.QWidget):
 			self.healthbars.emit(hp[0], hp[1])
 
 		for char in self.charlist:
-			if not exists(AOpath + 'characters\\' + char[0] + '\\char.ini'):
+			if not exists(AOpath + 'characters/' + char[0] + '/char.ini'):
 				continue
 			char[2] = get_char_ini(char[0], "options", "gender", "male")
 
@@ -2078,17 +2051,14 @@ class gui(QtGui.QWidget):
 		else:
 			self.icLog.append(logstart)
 		
-		bgthread = setBackgroundThread(background)
-		self.connect(bgthread, QtCore.SIGNAL('setBackground(QString)'), self.setBackground)
-		bgthread.start()
-		del bgthread
+		self.setBackground(background)
 		for msg in oocjoin:
 			self.ooclog.append(msg)
 
 		for song in musiclist:
 			songitem = QtGui.QListWidgetItem()
 			songitem.setText(song)
-			if exists(AOpath + 'sounds\\music\\' + song):
+			if exists(AOpath + 'sounds/music/' + song):
 				songitem.setBackgroundColor(QtGui.QColor(128, 255, 128))
 			else:
 				songitem.setBackgroundColor(QtGui.QColor(255, 128, 128))
@@ -2099,8 +2069,30 @@ class gui(QtGui.QWidget):
 		self.tcpthread = TCP_Thread(self)
 		self.tcpthread.MS_Chat.connect(self.netmsg_ms)
 		self.tcpthread.newChar.connect(self.loadCharacter)
+		self.tcpthread.newBackground.connect(self.setBackground)
+		self.tcpthread.OOC_Log.connect(self.ooclog.append)
+		self.tcpthread.IC_Log.connect(self.icLog.append)
+		self.tcpthread.charSlots.connect(partial(self.charselect.setCharList, self.charlist))
+		self.tcpthread.showCharSelect.connect(self.charselect.show)
+		self.tcpthread.allEvidence.connect(self.allEvidence)
+		self.tcpthread.rainbowColor.connect(self.text.setStyleSheet)
 		self.tcpthread.start()
 
+	def allEvidence(self, evi):
+		self.evidence = evi
+		if self.evidencedropdown.count() > 0:
+			self.evidencedropdown.clear()
+		for evi in self.evidence:
+			evi[0] = evi[0].decode('utf-8')
+			evi[1] = evi[1].decode('utf-8')
+			evi[2] = evi[2].decode('utf-8')
+			self.evidencedropdown.addItem(evi[0])
+
+		if not self.evidence:
+			self.evidencedropdown.setCurrentIndex(0)
+			self.evidencedesc.setText('.')
+		else:
+			self.evidencedropdown.setCurrentIndex(self.selectedevi)
 
 class ButtonThread(QtCore.QThread):
 
@@ -2154,8 +2146,8 @@ class PresentButton(QtGui.QLabel):
 	def __init__(self, gamegui, parent):
 		super(PresentButton, self).__init__(parent)
 		self.gamegui = gamegui
-		self.button_off = QtGui.QPixmap(AOpath + 'themes\\default\\present_disabled.png')
-		self.button_on = QtGui.QPixmap(AOpath + 'themes\\default\\present.png')
+		self.button_off = QtGui.QPixmap(AOpath + 'themes/default/present_disabled.png')
+		self.button_on = QtGui.QPixmap(AOpath + 'themes/default/present.png')
 		self.setPixmap(self.button_off)
 		self.show()
 
@@ -2168,19 +2160,20 @@ class PresentButton(QtGui.QLabel):
 
 
 class EditEvidenceDialog(QtGui.QDialog):
-
 	def __init__(self, gamegui):
 		super(EditEvidenceDialog, self).__init__()
 		self.gamegui = gamegui
 		self.setWindowTitle('Add evidence')
 		self.resize(512, 384)
+		self.setModal(True)
+
 		self.eviname = QtGui.QLineEdit(self)
 		self.eviname.setGeometry(8, 8, 384, 24)
 		self.evidesc = QtGui.QTextEdit(self)
 		self.evidesc.setGeometry(8, 192, 496, 160)
 		self.evipicture = QtGui.QLabel(self)
 		self.filename = 'empty.png'
-		evipic = QtGui.QPixmap(AOpath + 'evidence\\empty.png')
+		evipic = QtGui.QPixmap(AOpath + 'evidence/empty.png')
 		self.evipicture.setPixmap(evipic)
 		self.evipicture.move(434, 8)
 		self.evipicture.show()
@@ -2218,10 +2211,10 @@ class EditEvidenceDialog(QtGui.QDialog):
 
 	def choosePicChange(self, ind):
 		self.filename = self.filenames[ind]
-		if exists(AOpath + 'evidence\\' + self.filename):
-			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'evidence\\' + self.filename))
+		if exists(AOpath + 'evidence/' + self.filename):
+			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'evidence/' + self.filename))
 		else:
-			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'themes\\default\\evidence_selected.png'))
+			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/evidence_selected.png'))
 
 	def onSave(self):
 		name = self.eviname.text().toUtf8()
@@ -2232,7 +2225,7 @@ class EditEvidenceDialog(QtGui.QDialog):
 			self.gamegui.tcp.send('PE#' + name + '#' + desc + '#' + self.filename + '#%')
 		self.eviname.setText('')
 		self.evidesc.setText('')
-		evipic = QtGui.QPixmap(AOpath + 'evidence\\empty.png')
+		evipic = QtGui.QPixmap(AOpath + 'evidence/empty.png')
 		self.evipicture.setPixmap(evipic)
 		self.filename = 'empty.png'
 		self.editing = False
@@ -2243,7 +2236,7 @@ class EditEvidenceDialog(QtGui.QDialog):
 	def onCancel(self):
 		self.eviname.setText('')
 		self.evidesc.setText('')
-		evipic = QtGui.QPixmap(AOpath + 'evidence\\empty.png')
+		evipic = QtGui.QPixmap(AOpath + 'evidence/empty.png')
 		self.evipicture.setPixmap(evipic)
 		self.filename = 'empty.png'
 		self.editing = False
@@ -2305,7 +2298,7 @@ class BackEmoteButton(QtGui.QLabel):
 		super(BackEmoteButton, self).__init__(gamewindow)
 		self.gamewindow = gamewindow
 		self.move(x, y)
-		self.setPixmap(QtGui.QPixmap(AOpath + 'themes\\default\\arrow_left.png'))
+		self.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/arrow_left.png'))
 		self.show()
 
 	def mousePressEvent(self, event):
@@ -2319,7 +2312,7 @@ class NextEmoteButton(QtGui.QLabel):
 		super(NextEmoteButton, self).__init__(gamewindow)
 		self.gamewindow = gamewindow
 		self.move(x, y)
-		self.setPixmap(QtGui.QPixmap(AOpath + 'themes\\default\\arrow_right.png'))
+		self.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/arrow_right.png'))
 		self.show()
 
 	def mousePressEvent(self, event):
@@ -2328,8 +2321,17 @@ class NextEmoteButton(QtGui.QLabel):
 
 
 class TCP_Thread(QtCore.QThread):
+	connectionError = QtCore.pyqtSignal(str, str, str)
 	MS_Chat = QtCore.pyqtSignal(list)
 	newChar = QtCore.pyqtSignal(str)
+	newBackground = QtCore.pyqtSignal(str)
+	IC_Log = QtCore.pyqtSignal(str)
+	OOC_Log = QtCore.pyqtSignal(str)
+	charSlots = QtCore.pyqtSignal()
+	showCharSelect = QtCore.pyqtSignal()
+	allEvidence = QtCore.pyqtSignal(list)
+	rainbowColor = QtCore.pyqtSignal(str)
+    
 	def __init__(self, parent):
 		super(TCP_Thread, self).__init__(parent)
 		self.parent = parent
@@ -2358,7 +2360,8 @@ class TCP_Thread(QtCore.QThread):
 				rainbow += 5
 				if rainbow > 255:
 					rainbow = 0
-				self.parent.text.setStyleSheet('color: rgb(' + str(color.red()) + ', ' + str(color.green()) + ', ' + str(color.blue()) + ')')
+				#self.parent.text.setStyleSheet('color: rgb(' + str(color.red()) + ', ' + str(color.green()) + ', ' + str(color.blue()) + ')')
+				self.rainbowColor.emit('color: rgb(' + str(color.red()) + ', ' + str(color.green()) + ', ' + str(color.blue()) + ')')
 				
 			if sendtick:
 				sendtick -= 1
@@ -2417,20 +2420,20 @@ class TCP_Thread(QtCore.QThread):
 						
 						if len(network) > 3:
 							name += " ("+network[3].decode("utf-8")+")"
-						self.parent.icLog.append('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
+						#self.parent.icLog.append('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
+						self.IC_Log.emit('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
 					else:
-						self.parent.icLog.append('[%d:%.2d] the music was changed to %s' % (t[3], t[4], music))
+						self.IC_Log.emit('[%d:%.2d] the music was changed to %s' % (t[3], t[4], music))
 					self.parent.playMusic(music)
+
 				elif header == 'BN':
-					imgthread = setBackgroundThread(network[1])
-					self.parent.connect(imgthread, QtCore.SIGNAL('setBackground(QString)'), self.parent.setBackground)
-					imgthread.start()
-					del imgthread
+					self.newBackground.emit(network[1])
 				
 				elif header == 'CT':
 					name = network[1].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					chatmsg = network[2].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#').replace("\n", "<br />")
-					self.parent.ooclog.append('<b>%s:</b> %s' % (name, chatmsg))
+					#self.parent.ooclog.append('<b>%s:</b> %s' % (name, chatmsg))
+					self.OOC_Log.emit("<b>%s:</b> %s" % (name, chatmsg))
 				
 				elif header == 'PV':
 					self.parent.mychar = int(network[3])
@@ -2441,34 +2444,22 @@ class TCP_Thread(QtCore.QThread):
 				
 				elif header == 'LE':
 					del network[0]
-					self.parent.evidence = [ evi.split('&') for evi in network ]
-					if self.parent.evidencedropdown.count() > 0:
-						self.parent.evidencedropdown.clear()
-					for evi in self.parent.evidence:
-						evi[0] = evi[0].decode('utf-8')
-						evi[1] = evi[1].decode('utf-8')
-						evi[2] = evi[2].decode('utf-8')
-						self.parent.evidencedropdown.addItem(evi[0])
+					self.allEvidence.emit([evi.split('&') for evi in network])
 
-					if not self.parent.evidence:
-						self.parent.evidencedropdown.setCurrentIndex(0)
-						self.parent.evidencedesc.setText('.')
-					else:
-						self.parent.evidencedropdown.setCurrentIndex(self.parent.selectedevi)
 				elif header == 'ZZ':
 					if self.parent.modcall:
 						BASS_ChannelPlay(self.parent.modcall, False)
 					
 					if len(network) > 1:
-						self.parent.ooclog.append('<b>[MOD CALL] ' + network[1].replace("\n", "<br />") + '</b>')
+						self.OOC_Log.emit('<b>[MOD CALL] ' + network[1].replace("\n", "<br />") + '</b>')
 					else:
-						self.parent.ooclog.append('<b>[MOD CALL] But there was no extra information. (old server?)</b>')
+						self.OOC_Log.emit('<b>[MOD CALL] But there was no extra information. (old server?)</b>')
 				elif header == 'CharsCheck':
 					del network[0]
 					for i in range(len(network)):
 						self.parent.charlist[i][1] = int(network[i])
 
-					self.parent.charselect.setCharList(self.parent.charlist)
+					self.charSlots.emit()
 				
 				elif header == 'RT':
 					testimony = network[1]
@@ -2501,4 +2492,4 @@ class TCP_Thread(QtCore.QThread):
 					self.parent.gotPing.emit(int((pingafter - pingbefore)*1000))
 				
 				elif header == 'DONE':
-					self.parent.charselect.show()
+					self.showCharSelect.emit()

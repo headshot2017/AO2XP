@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui
 import os
 
-#AOpath = "base\\"
-AOpath = "I:\\aovanilla1.7.5\\client\\base\\"
+AOpath = "base\\"
+#AOpath = "I:\\aovanilla1.7.5\\client\\base\\"
 
 class RealizationButton(QtGui.QLabel):
 	pressed = False
@@ -155,6 +155,7 @@ class PenaltyBars(QtGui.QLabel):
 	plusClicked = QtCore.pyqtSignal(int)
 	def __init__(self, parent, type):
 		super(PenaltyBars, self).__init__(parent)
+		self.parent = parent
 		self.penaltybars = []
 		self.type = type
 		self.health = 10
@@ -167,6 +168,7 @@ class PenaltyBars(QtGui.QLabel):
 			for i in range(11):
 				self.penaltybars.append(QtGui.QPixmap(AOpath+"themes\\default\\prosecutionbar"+str(i)+".png"))
 			side = "pro"
+		self.side = side
 		self.minusbtn = PixmapButton(parent, QtGui.QPixmap(AOpath+"themes\\default\\"+side+"minus.png"))
 		self.plusbtn = PixmapButton(parent, QtGui.QPixmap(AOpath+"themes\\default\\"+side+"plus.png"))
 		self.minusbtn.clicked.connect(self.minusClick)
@@ -188,6 +190,8 @@ class PenaltyBars(QtGui.QLabel):
 		self.minusClicked.emit(self.type)
 	
 	def setHealth(self, health):
+                self.minusbtn.setPixmap(QtGui.QPixmap(AOpath+"themes\\default\\"+self.side+"minus.png"))
+		self.plusbtn.setPixmap(QtGui.QPixmap(AOpath+"themes\\default\\"+self.side+"plus.png"))
 		self.setPixmap(self.penaltybars[health])
 		self.health = health
 		
