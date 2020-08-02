@@ -30,7 +30,7 @@ os.rename('pybass/pybass.py', 'pybass/__init__.py')
 
 
 print "downloading bass"
-filedata = urllib2.urlopen('http://us.un4seen.com/files/bass24.zip')  
+filedata = urllib2.urlopen('http://us.un4seen.com/files/bass24.zip')
 datatowrite = filedata.read()
 
 with open('bass24.zip', 'wb') as f:  
@@ -41,6 +41,35 @@ print "extracting bass"
 zip_ref = zipfile.ZipFile('bass24.zip', 'r')
 zip_ref.extract('bass.dll')
 zip_ref.close()
+
+print "downloading bassopus"
+filedata = urllib2.urlopen('http://us.un4seen.com/files/bassopus24.zip')
+datatowrite = filedata.read()
+
+with open('bassopus24.zip', 'wb') as f:  
+    f.write(datatowrite)
+    f.close()
+
+print "extracting bassopus"
+zip_ref = zipfile.ZipFile('bassopus24.zip', 'r')
+zip_ref.extract('bassopus.dll')
+zip_ref.close()
+
+print "installing apng"
+pip_install("apng")
+
+try:
+    from PIL import Image
+    if Image.__version__ != "6.0.0":
+        jm = raw_input("Pillow version 6.0.0 is recommended for compatibility with PyQt4; You have version %s\nReplace with version 6.0.0? (Y/N) > " % Image.__version__).lower()
+        if jm == "y":
+            print "installing Pillow 6.0.0"
+            pip_install("Pillow==6.0.0")
+
+except ImportError:
+    print "installing Pillow 6.0.0"
+    pip_install("Pillow==6.0.0")
+
 
 print "downloading pyqt4"
 filedata = requests.get('http://raw.githubusercontent.com/dhb52/python-lib/master/PyQt4-4.11.4-cp27-cp27m-win32.whl')  
