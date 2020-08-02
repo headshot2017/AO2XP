@@ -164,6 +164,8 @@ class ChatLogs(QtGui.QTextEdit):
 
 class AOCharMovie(QtGui.QLabel):
 	done = QtCore.pyqtSignal()
+	use_pillow = False
+	pillow_frames = []
 
 	def __init__(self, parent):
 		QtGui.QLabel.__init__(self, parent)
@@ -177,7 +179,9 @@ class AOCharMovie(QtGui.QLabel):
 		
 		self.preanim_timer = QtCore.QTimer(self)
 		self.preanim_timer.setSingleShot(True)
-		
+		self.pillow_timer = QtCore.QTimer(self)
+		self.pillow_timer.setSingleShot(True)
+
 		self.preanim_timer.timeout.connect(self.timer_done)
 		self.m_movie.frameChanged.connect(self.frame_change)
 	
@@ -195,13 +199,16 @@ class AOCharMovie(QtGui.QLabel):
 			emote_prefix = ""
 			p_emote = emote
 		
-		original_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".gif"	
+		original_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".gif"
 		alt_path = AOpath+"characters/"+p_char+"/"+p_emote+".png"
+		apng_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".apng"
+		webp_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".webp"
 		placeholder_path = AOpath+"themes/default/placeholder.gif"
 		gif_path = ""
 		
 		if exists(original_path):
 			gif_path = original_path
+            self.use_pillow = False
 		else:
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
@@ -212,6 +219,7 @@ class AOCharMovie(QtGui.QLabel):
 			
 			if exists(alt_path):
 				gif_path = alt_path
+                self.use_pillow = False
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".png"
@@ -219,12 +227,35 @@ class AOCharMovie(QtGui.QLabel):
 					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 						os.mkdir(AOpath+"characters/"+p_char)
 					thread.start_new_thread(download_thread, (url, alt_path))
-		
-				if exists(placeholder_path):
-					gif_path = placeholder_path
+
+				if exists(apng_path):
+					gif_path = apng_path
+					self.use_pillow = True
 				else:
-					gif_path = ""
-		
+					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+						url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
+						url = url.replace(" ", "%20")
+						if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
+							os.mkdir(AOpath+"characters/"+p_char)
+						thread.start_new_thread(download_thread, (url, apng_path))
+
+					if exists(webp_path):
+						gif_path = webp_path
+						self.use_pillow = True
+					else:
+						if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+							url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
+							url = url.replace(" ", "%20")
+							if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
+								os.mkdir(AOpath+"characters/"+p_char)
+							thread.start_new_thread(download_thread, (url, original_path))
+
+						if exists(placeholder_path):
+							gif_path = placeholder_path
+						else:
+							gif_path = ""
+						self.use_pillow = False
+
 		self.m_movie.stop()
 		self.m_movie.setFileName(gif_path)
 		
@@ -459,7 +490,7 @@ class gui(QtGui.QWidget):
 	chatmsg = ''
 	charid = -1
 	#ICchat = QtCore.pyqtSignal(str, str, str, str, str, str, int, int, int, int, int, int, int, int)
-	ICchat = QtCore.pyqtSignal(list)
+	#ICchat = QtCore.pyqtSignal(list)
 	WTCEsignal = QtCore.pyqtSignal(str, int)
 	healthbars = QtCore.pyqtSignal(int, int)
 	gotPing = QtCore.pyqtSignal(int)
@@ -1023,7 +1054,6 @@ class gui(QtGui.QWidget):
 				self.emotedropdown.addItem(emotelist[1] + ' ' + emotelist[2])
 
 		self.emotedropdown.setCurrentIndex(0)
-		print "set emote page"
 		self.set_emote_page()
 
 	def set_emote_page(self):
@@ -1889,7 +1919,7 @@ class gui(QtGui.QWidget):
 				self.current_display_speed = 0
 			elif self.current_display_speed > 6:
 				self.current_display_speed = 6
-			
+
 			if formatting_char:
 				self.chat_tick_timer.start(1)
 			else:
