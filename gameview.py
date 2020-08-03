@@ -2449,7 +2449,7 @@ class TCP_Thread(QtCore.QThread):
 						except:
 							name = 'char id %d' % charid
 						
-						if len(network) > 3:
+						if len(network) > 3 and network[3]:
 							name += " ("+network[3].decode("utf-8")+")"
 						#self.parent.icLog.append('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
 						self.IC_Log.emit('[%d:%.2d] %s changed the music to %s' % (t[3], t[4], name, music))
