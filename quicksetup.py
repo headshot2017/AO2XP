@@ -60,15 +60,17 @@ pip_install("apng")
 
 try:
     from PIL import Image
-    if Image.__version__ != "6.0.0":
-        jm = raw_input("Pillow version 6.0.0 is recommended for compatibility with PyQt4; You have version %s\nReplace with version 6.0.0? (Y/N) > " % Image.__version__).lower()
+    if Image.__version__ != "6.1.0":
+        jm = raw_input("Pillow version 6.1.0 is recommended for compatibility with PyQt4; You have version %s\nReplace with version 6.1.0? (Y/N) > " % Image.__version__).lower()
         if jm == "y":
-            print "installing Pillow 6.0.0"
-            pip_install("Pillow==6.0.0")
+            print "installing Pillow 6.1.0"
+            pip_install("Pillow==6.1.0")
+    else:
+        print "Pillow 6.1.0 already exists, skipping"
 
 except ImportError:
-    print "installing Pillow 6.0.0"
-    pip_install("Pillow==6.0.0")
+    print "installing Pillow 6.1.0"
+    pip_install("Pillow==6.1.0")
 
 
 print "downloading pyqt4"
