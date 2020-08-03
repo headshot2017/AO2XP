@@ -28,7 +28,7 @@ def load_apng(file):
 
     for frame, frame_info in img.frames:
         i = img.frames.index((frame, frame_info))
-        pilframe = Image.open(io.BytesIO(frame.to_bytes()))
+        pilframe = Image.open(io.BytesIO(frame.to_bytes())).convert("RGBA")
 
         if dispose_op == APNG_DISPOSE_OP_BACKGROUND:
             pilframe2 = Image.new("RGBA", (width, height), (255,255,255,0))
@@ -46,8 +46,12 @@ def load_apng(file):
                 pilframe2.paste(pilframe, (frame_info.x_offset, frame_info.y_offset), pilframe.convert("RGBA") if frame_info.blend_op == APNG_BLEND_OP_OVER else None)
 
         pilframes.append(pilframe2)
-        frames.append([pilframe2.toqimage(), frame_info.delay*10]) # convert delay from centiseconds to milliseconds
-        dispose_op = frame_info.depose_op
+        if frame_info:
+            frames.append([pilframe2.toqimage(), frame_info.delay*10]) # convert delay from centiseconds to milliseconds
+            dispose_op = frame_info.depose_op
+        else:
+            frames.append([pilframe2.toqimage(), 0])
+
 
     return frames
 
