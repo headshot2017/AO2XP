@@ -3,25 +3,78 @@ from PyQt4 import QtGui
 from apng import APNG
 import io
 
+APNG_DISPOSE_OP_NONE = 0
+APNG_DISPOSE_OP_BACKGROUND = 1
+APNG_DISPOSE_OP_PREVIOUS = 2
+APNG_BLEND_OP_SOURCE = 0
+APNG_BLEND_OP_OVER = 1
+
+# layman's terms of above apng constants so i can easily wrap my head around it:
+#
+# APNG_DISPOSE_OP_NONE: do nothing with next frame, keep it as it is
+# APNG_DISPOSE_OP_BACKGROUND: turn the current frame into full transparency before pasting the next frame
+# APNG_DISPOSE_OP_PREVIOUS: grab the previous frame, and paste the next one into THAT previous frame
+#
+# APNG_BLEND_OP_SOURCE: replace frame region
+# APNG_BLEND_OP_OVER: blend with frame
+
 def load_apng(file):
-	pass
+    img = APNG.open(file)
+    frames = []
+    pilframes = []
+    dispose_op = 0
+    
+    width, height = img.frames[0][0].width, img.frames[0][0].height
+
+    for frame, frame_info in img.frames:
+        i = img.frames.index((frame, frame_info))
+        pilframe = Image.open(io.BytesIO(frame.to_bytes()))
+
+        if dispose_op == APNG_DISPOSE_OP_BACKGROUND:
+            pilframe2 = Image.new("RGBA", (width, height), (255,255,255,0))
+            pilframe2.paste(pilframe, (frame_info.x_offset, frame_info.y_offset), pilframe.convert("RGBA"))
+
+        elif dispose_op == APNG_DISPOSE_OP_PREVIOUS:
+            pilframe2 = pilframes[-2].copy()
+            pilframe2.paste(pilframe, (frame_info.x_offset, frame_info.y_offset), pilframe.convert("RGBA"))
+        
+        else:
+            if i == 0:
+                pilframe2 = pilframe
+            else:
+                pilframe2 = pilframes[-1].copy()
+                pilframe2.paste(pilframe, (frame_info.x_offset, frame_info.y_offset), pilframe.convert("RGBA") if frame_info.blend_op == APNG_BLEND_OP_OVER else None)
+
+        pilframes.append(pilframe2)
+        frames.append([pilframe2.toqpixmap(), frame_info.delay*10]) # convert delay from centiseconds to milliseconds
+        dispose_op = frame_info.depose_op
+
+    return frames
 
 def load_webp(file):
-	pass
+    img = Image.open(file)
+    frames = []
+
+    for i in range(img.n_frames):
+        img.seek(i)
+        img.load() # strange thing with Pillow and animated webp's is that the img.info dictionary attr doesn't update unless you call a function like this
+        frames.append([img.toqpixmap(), img.info["duration"]])
+
+    return frames
 
 def get_apng_duration(file):
     img = APNG.open(file)
     dur = 0
-    
+
     for frame, frame_info in img.frames:
-        dur += frame_info.delay*10 # it's in centiseconds, convert to milliseconds
+        dur += frame_info.delay*10 # convert delay from centiseconds to milliseconds
 
     return dur
 
 def get_webp_duration(file):
     img = Image.open(file)
     dur = 0
-    
+
     for i in range(img.n_frames):
         img.seek(i)
         img.load() # strange thing with Pillow and animated webp's is that the img.info dictionary attr doesn't update unless you call a function like this
