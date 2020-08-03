@@ -208,7 +208,7 @@ class AOCharMovie(QtGui.QLabel):
 		
 		if exists(original_path):
 			gif_path = original_path
-            self.use_pillow = False
+			self.use_pillow = False
 		else:
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
@@ -216,10 +216,10 @@ class AOCharMovie(QtGui.QLabel):
 				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 					os.mkdir(AOpath+"characters/"+p_char)
 				thread.start_new_thread(download_thread, (url, original_path))
-			
+
 			if exists(alt_path):
 				gif_path = alt_path
-                self.use_pillow = False
+				self.use_pillow = False
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".png"
