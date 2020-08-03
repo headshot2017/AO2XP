@@ -198,6 +198,8 @@ class AOCharMovie(QtGui.QLabel):
 			emote = a[4]
 			emote_prefix = ""
 			p_emote = emote
+        
+        self.pillow_frames = []
 		
 		original_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".gif"
 		alt_path = AOpath+"characters/"+p_char+"/"+p_emote+".png"
@@ -206,49 +208,49 @@ class AOCharMovie(QtGui.QLabel):
 		placeholder_path = AOpath+"themes/default/placeholder.gif"
 		gif_path = ""
 		
-		if exists(original_path):
-			gif_path = original_path
-			self.use_pillow = False
+		if exists(apng_path):
+			gif_path = apng_path
+			self.use_pillow = True
 		else:
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
+				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
 				url = url.replace(" ", "%20")
 				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 					os.mkdir(AOpath+"characters/"+p_char)
-				thread.start_new_thread(download_thread, (url, original_path))
+				thread.start_new_thread(download_thread, (url, apng_path))
 
-			if exists(alt_path):
-				gif_path = alt_path
+			if exists(webp_path):
+				gif_path = webp_path
 				self.use_pillow = False
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".png"
+					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
 					url = url.replace(" ", "%20")
 					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 						os.mkdir(AOpath+"characters/"+p_char)
-					thread.start_new_thread(download_thread, (url, alt_path))
+					thread.start_new_thread(download_thread, (url, webp_path))
 
-				if exists(apng_path):
-					gif_path = apng_path
-					self.use_pillow = True
+				if exists(original_path):
+					gif_path = original_path
+					self.use_pillow = False
 				else:
 					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-						url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
+						url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
 						url = url.replace(" ", "%20")
 						if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 							os.mkdir(AOpath+"characters/"+p_char)
-						thread.start_new_thread(download_thread, (url, apng_path))
+						thread.start_new_thread(download_thread, (url, original_path))
 
-					if exists(webp_path):
-						gif_path = webp_path
-						self.use_pillow = True
+					if exists(alt_path):
+						gif_path = alt_path
+						self.use_pillow = False
 					else:
 						if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-							url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
+							url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
 							url = url.replace(" ", "%20")
 							if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 								os.mkdir(AOpath+"characters/"+p_char)
-							thread.start_new_thread(download_thread, (url, original_path))
+							thread.start_new_thread(download_thread, (url, alt_path))
 
 						if exists(placeholder_path):
 							gif_path = placeholder_path
