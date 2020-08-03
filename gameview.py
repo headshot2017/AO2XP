@@ -221,7 +221,7 @@ class AOCharMovie(QtGui.QLabel):
 
 			if exists(webp_path):
 				gif_path = webp_path
-				self.use_pillow = False
+				self.use_pillow = True
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
