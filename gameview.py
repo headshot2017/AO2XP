@@ -5,6 +5,8 @@ from os.path import exists
 from functools import partial
 from ConfigParser import ConfigParser
 
+import images
+
 AOpath = "base/"
 #AOpath = 'I:/aovanilla1.7.5/client/base/'
 
@@ -120,7 +122,7 @@ class ChatLogs(QtGui.QTextEdit):
 		self.type = logtype
 		self.savelog = ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "save logs")
 		self.combinelog = ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "combined logs")
-		if not os.path.exists("chatlogs"):
+		if not exists("chatlogs"):
 			os.mkdir("chatlogs")
 		
 		if self.savelog:
@@ -164,8 +166,10 @@ class ChatLogs(QtGui.QTextEdit):
 
 class AOCharMovie(QtGui.QLabel):
 	done = QtCore.pyqtSignal()
-	use_pillow = False
+	use_pillow = 0
 	pillow_frames = []
+	pillow_frame = 0
+	pillow_speed = 0
 
 	def __init__(self, parent):
 		QtGui.QLabel.__init__(self, parent)
@@ -183,6 +187,7 @@ class AOCharMovie(QtGui.QLabel):
 		self.pillow_timer.setSingleShot(True)
 
 		self.preanim_timer.timeout.connect(self.timer_done)
+		self.pillow_timer.timeout.connect(self.pillow_frame_change)
 		self.m_movie.frameChanged.connect(self.frame_change)
 	
 	def set_flipped(self, flip):
@@ -199,7 +204,8 @@ class AOCharMovie(QtGui.QLabel):
 			emote_prefix = ""
 			p_emote = emote
         
-        self.pillow_frames = []
+		self.pillow_frames = []
+		self.pillow_frame = 0
 		
 		original_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".gif"
 		alt_path = AOpath+"characters/"+p_char+"/"+p_emote+".png"
@@ -210,7 +216,7 @@ class AOCharMovie(QtGui.QLabel):
 		
 		if exists(apng_path):
 			gif_path = apng_path
-			self.use_pillow = True
+			self.use_pillow = 1
 		else:
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
@@ -221,7 +227,7 @@ class AOCharMovie(QtGui.QLabel):
 
 			if exists(webp_path):
 				gif_path = webp_path
-				self.use_pillow = True
+				self.use_pillow = 2
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
@@ -232,7 +238,7 @@ class AOCharMovie(QtGui.QLabel):
 
 				if exists(original_path):
 					gif_path = original_path
-					self.use_pillow = False
+					self.use_pillow = 0
 				else:
 					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 						url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
@@ -243,7 +249,7 @@ class AOCharMovie(QtGui.QLabel):
 
 					if exists(alt_path):
 						gif_path = alt_path
-						self.use_pillow = False
+						self.use_pillow = 0
 					else:
 						if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
 							url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
@@ -256,30 +262,50 @@ class AOCharMovie(QtGui.QLabel):
 							gif_path = placeholder_path
 						else:
 							gif_path = ""
-						self.use_pillow = False
+						self.use_pillow = 0
 
-		self.m_movie.stop()
-		self.m_movie.setFileName(gif_path)
-		
+		if not self.use_pillow:
+			self.m_movie.stop()
+			self.m_movie.setFileName(gif_path)
+			self.m_movie.start()
+
+		elif self.use_pillow == 1: # apng
+			self.pillow_frames = images.load_apng(apng_path)
+			#print apng_path, self.pillow_frames[0], int(self.pillow_frames[0][1] * self.pillow_speed) if len(self.pillow_frames[0]) > 1 else 0
+			if len(self.pillow_frames) > 1: self.pillow_timer.start(int(self.pillow_frames[0][1] * self.pillow_speed))
+			self.set_pillow_frame()
+
+		elif self.use_pillow == 2: # webp
+			self.pillow_frames = images.load_webp(webp_path)
+			if len(self.pillow_frames) > 1: self.pillow_timer.start(int(self.pillow_frames[0][1] * self.pillow_speed))
+			self.set_pillow_frame()
+
 		self.show()
-		self.m_movie.start()
 	
 	def play_pre(self, p_char, p_emote, duration):
 		gif_path = AOpath+"characters/"+p_char+"/"+p_emote+".gif"
-		
-		self.m_movie.stop()
-		self.clear()
-		self.m_movie.setFileName(gif_path)
-		self.m_movie.jumpToFrame(0)
-		
+		apng_path = AOpath+"characters/"+p_char+"/"+p_emote+".apng"
+		webp_path = AOpath+"characters/"+p_char+"/"+p_emote+".webp"
+
 		full_duration = duration * self.time_mod
 		real_duration = 0
-		
+
 		self.play_once = False
-		
-		for n_frame in range(self.m_movie.frameCount()):
-			real_duration += self.m_movie.nextFrameDelay()
-			self.m_movie.jumpToFrame(n_frame + 1)
+		self.m_movie.stop()
+		self.clear()
+
+		if exists(apng_path):
+			real_duration = images.get_apng_duration(apng_path)
+
+		elif exists(webp_path):
+			real_duration = images.get_webp_duration(webp_path)
+
+		elif exists(gif_path):
+			self.m_movie.setFileName(gif_path)
+			self.m_movie.jumpToFrame(0)
+			for n_frame in range(self.m_movie.frameCount()):
+				real_duration += self.m_movie.nextFrameDelay()
+				self.m_movie.jumpToFrame(n_frame + 1)
 		
 		percentage_modifier = 100.0
 		
@@ -290,6 +316,7 @@ class AOCharMovie(QtGui.QLabel):
 			if percentage_modifier > 100.0 or percentage_modifier < 0.0:
 				percentage_modifier = 100.0
 		
+		self.pillow_fullduration = full_duration
 		if full_duration == 0 or full_duration >= real_duration:
 			self.play_once = True
 		else:
@@ -298,6 +325,7 @@ class AOCharMovie(QtGui.QLabel):
 				self.preanim_timer.start(full_duration)
 		
 		self.m_movie.setSpeed(int(percentage_modifier))
+		self.pillow_speed = percentage_modifier / 100.
 		self.play(p_char, p_emote, "")
 	
 	def play_talking(self, p_char, p_emote):
@@ -310,6 +338,7 @@ class AOCharMovie(QtGui.QLabel):
 		
 		self.play_once = False
 		self.m_movie.setSpeed(100)
+		self.pillow_speed = 1
 		self.play(p_char, p_emote, '(b)')
 
 	def play_idle(self, p_char, p_emote):
@@ -322,6 +351,7 @@ class AOCharMovie(QtGui.QLabel):
 		
 		self.play_once = False
 		self.m_movie.setSpeed(100)
+		self.pillow_speed = 1
 		self.play(p_char, p_emote, '(a)')
 
 	def stop(self):
@@ -340,6 +370,28 @@ class AOCharMovie(QtGui.QLabel):
 		
 		if self.m_movie.frameCount() - 1 == n_frame and self.play_once:
 			self.preanim_timer.start(self.m_movie.nextFrameDelay())
+
+	@QtCore.pyqtSlot()
+	def pillow_frame_change(self):
+		if len(self.pillow_frames)-1 == self.pillow_frame:
+			if self.play_once:
+				self.preanim_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+			elif len(self.pillow_frames) > 1:
+				self.pillow_frame = 0
+				self.pillow_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+		else:
+			self.pillow_frame += 1
+			self.pillow_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+
+		self.set_pillow_frame()
+
+	def set_pillow_frame(self):
+		f_img = self.pillow_frames[self.pillow_frame][0].mirrored(self.m_flipped, False)
+		if f_img.size().width() != 256 or f_img.size().height() != 192:
+			f_img = f_img.scaled(256, 192, transformMode=QtCore.Qt.SmoothTransformation)
+
+		f_pixmap = QtGui.QPixmap.fromImage(f_img)
+		self.setPixmap(f_pixmap)
 
 	@QtCore.pyqtSlot()
 	def timer_done(self):
@@ -1655,7 +1707,9 @@ class gui(QtGui.QWidget):
 			preanim_duration = ao2_duration
 			
 		anim_to_find = AOpath+"characters/"+f_char+"/"+f_preanim+".gif"
-		if not exists(anim_to_find) or preanim_duration < 0:
+		apng_to_find = AOpath+"characters/"+f_char+"/"+f_preanim+".apng"
+		webp_to_find = AOpath+"characters/"+f_char+"/"+f_preanim+".webp"
+		if (not exists(anim_to_find) and not exists(apng_to_find) and not exists(webp_to_find)) or preanim_duration < 0:
 			if noninterrupting:
 				self.anim_state = 4
 			else:
