@@ -576,10 +576,13 @@ class gui(QtGui.QWidget):
 			self.modcall = BASS_StreamCreateFile(False, 'mod_call.wav', 0, 0, 0)
 		else:
 			self.modcall = None
-			
-		self.wtcesfx = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-testimony2.wav', 0, 0, 0)
-		self.guiltysfx = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-guilty.wav", 0, 0, 0)
-		self.notguiltysfx = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-notguilty.wav", 0, 0, 0)
+
+		wtcefile = AOpath+"sounds/general/sfx-testimony2"
+		guiltyfile = AOpath+"sounds/general/sfx-guilty"
+		notguiltyfile = AOpath+"sounds/general/sfx-notguilty"
+		self.wtcesfx = BASS_StreamCreateFile(False, wtcefile+".opus" if exists(wtcefile+".opus") else wtcefile+".wav", 0, 0, 0)
+		self.guiltysfx = BASS_StreamCreateFile(False, guiltyfile+".opus" if exists(guiltyfile+".opus") else guiltyfile+".wav", 0, 0, 0)
+		self.notguiltysfx = BASS_StreamCreateFile(False, notguiltyfile+".opus" if exists(notguiltyfile+".opus") else notguiltyfile+".wav", 0, 0, 0)
 		
 		self.healthbars.connect(self.netmsg_hp)
 		self.disconnectnow = False
