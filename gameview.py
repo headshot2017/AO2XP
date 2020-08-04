@@ -2003,6 +2003,8 @@ class gui(QtGui.QWidget):
 		if objecting:
 			if exists(AOpath + 'characters/' + charname + '/' + objecting + '.wav'):
 				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'characters/' + charname + '/' + objecting + '.wav', 0, 0, 0)
+			elif exists(AOpath + 'characters/' + charname + '/' + objecting + '.opus'):
+				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'characters/' + charname + '/' + objecting + '.opus', 0, 0, 0)
 			else:
 				self.objectsnd = None
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download sounds"):
