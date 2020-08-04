@@ -380,6 +380,8 @@ class AOCharMovie(QtGui.QLabel):
 
 	@QtCore.pyqtSlot()
 	def pillow_frame_change(self):
+		if not self.pillow_frames: return
+
 		if len(self.pillow_frames)-1 == self.pillow_frame:
 			if self.play_once:
 				self.preanim_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
@@ -1382,20 +1384,16 @@ class gui(QtGui.QWidget):
 		if "flipping" in self.features:
 			msg += str(self.myflip)+"#"
 		else:
-			msg += str(self.mychar)+"#" #old AO servers send a second charID in the message because drunk fanat
+			msg += str(self.mychar)+"#" # old AO servers send a second charID in the message because drunk fanat
 		
 		msg += str(int(self.realizationbtn.isPressed()))+"#"
 		msg += str(self.mychatcolor)+"#"
 		
 		if "cccc_ic_support" in self.features:
-			msg += self.showname+"#" #custom showname
-			if self.paircheckbox.isChecked():
-				msg += str(self.pairdropdown.currentIndex())+"#" #pair charID
-				msg += str(self.pairoffset.value())+"#" #self offset
-			else:
-				msg += "-1#" #pair charID
-				msg += "0#" #self offset
-			msg += str(int(self.nointerruptbtn.isChecked()))+"#" #NoInterrupt(TM)
+			msg += self.showname+"#" # custom showname
+			msg += (str(self.pairdropdown.currentIndex()) if self.paircheckbox.isChecked() else "-1")+"#" # pair charID
+			msg += str(self.pairoffset.value())+"#" # send this anyway; AO 2.8
+			msg += str(int(self.nointerruptbtn.isChecked()))+"#" # NoInterrupt(TM)
 		
 		msg += "%"
 		self.msgqueueList.addItem(self.icchatinput.text())
