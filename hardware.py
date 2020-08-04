@@ -13,3 +13,6 @@ def get_hdid():
 
     elif os.name == "posix":
         return os.popen("cat /var/lib/dbus/machine-id").read().rstrip()
+    
+    else:
+        return "(%s) no u jm" % os.name
