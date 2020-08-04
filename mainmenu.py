@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-import socket, thread, time, random, traceback, uuid
+import socket, thread, time, random, traceback, hardware
 from os.path import exists
 
 AOpath = "base/"
@@ -112,6 +112,7 @@ class lobby(QtGui.QWidget):
 		self.onlineplayers.resize(173, 16)
 		
 		self.serverinfo = QtGui.QTextEdit(self)
+		self.serverinfo.setReadOnly(True)
 		self.serverinfo.setStyleSheet("color: white; background-color: black")
 		self.serverinfo.move(337, 109)
 		self.serverinfo.resize(173, 245)
@@ -382,7 +383,7 @@ class lobby(QtGui.QWidget):
 					got_stuff = True
 				
 				elif header == "decryptor":
-					self.tcp.send("HI#AO2XP %s#%%" % uuid.UUID(int=uuid.getnode()))
+					self.tcp.send("HI#AO2XP %s#%%" % hardware.get_hdid())
 				
 				elif header == "ID":
 					self.tcp.send("ID#AO2#69.1337.420#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
@@ -544,7 +545,7 @@ class lobby(QtGui.QWidget):
 				header = network[0]
 				
 				if header == "servercheok":
-					self.ms_tcp.send('HI#ao 2.8 apng will kill me#%ID#AO2XP by Headshot#1.4#%')
+					self.ms_tcp.send("HI#AO2XP %s#%%ID#AO2XP by Headshot#1.4#%%" % hardware.get_hdid())
 					self.ms_tcp.send("ALL#%")
 				
 				elif header == 'DOOM':
