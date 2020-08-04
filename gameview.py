@@ -1838,7 +1838,11 @@ class gui(QtGui.QWidget):
 		
 		charid = int(self.m_chatmessage[CHAR_ID])
 		self.blip = self.charlist[charid][2]
-		self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".wav", 0, 0, 0)
+
+		if exists(AOpath+"sounds/general/sfx-blip"+self.blip+".wav"):
+			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".wav", 0, 0, 0)
+		elif exists(AOpath+"sounds/general/sfx-blip"+self.blip+".opus"):
+			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".opus", 0, 0, 0)
 		BASS_ChannelSetAttribute(self.blipsnd, BASS_ATTRIB_VOL, self.blipslider.value() / 100.0)
 		
 		self.text_state = 1
@@ -2035,8 +2039,14 @@ class gui(QtGui.QWidget):
 			if BASS_ChannelIsActive(self.sound):
 				BASS_ChannelStop(self.sound)
 			BASS_StreamFree(self.sound)
+
 		if exists(AOpath + 'sounds/general/' + sfx + '.wav'):
 			self.sound = BASS_StreamCreateFile(False, AOpath + 'sounds/general/' + sfx + '.wav', 0, 0, 0)
+			BASS_ChannelSetAttribute(self.sound, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
+			BASS_ChannelPlay(self.sound, True)
+
+		elif exists(AOpath + 'sounds/general/' + sfx + '.opus'):
+			self.sound = BASS_StreamCreateFile(False, AOpath + 'sounds/general/' + sfx + '.opus', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.sound, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.sound, True)
 
@@ -2060,8 +2070,8 @@ class gui(QtGui.QWidget):
 				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 				BASS_ChannelPlay(self.music, True)
 			else:
-                                self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/aov-webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
-                                BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
+				self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/aov-webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 				BASS_ChannelPlay(self.music, True)
 
 	def stopMusic(self):
