@@ -47,6 +47,8 @@ self.pairdropdown.setGeometry(self.paircheckbox.x() + self.paircheckbox.size().w
 self.pairoffset.setGeometry(24, 64, 192, 24)
 self.pairoffset_l.move(self.pairoffset.x(), self.pairoffset.y()-16)
 self.pairoffsetreset.move(self.pairoffset.x() + self.pairoffset.size().width() + 8, self.pairoffset.y())
+self.pair_order.setGeometry(self.pairoffsetreset.x() + self.pairoffsetreset.size().width() + 32, self.pairoffsetreset.y(), 80, self.pairoffsetreset.sizeHint().height())
+self.pair_order_l.move(self.pair_order.x(), self.pairoffset_l.y())
 
 self.spacebartext.move(self.mocktext.x(), self.mocktext.y()+24)
 self.autocaps.move(self.spacebartext.x(), self.spacebartext.y()+24)

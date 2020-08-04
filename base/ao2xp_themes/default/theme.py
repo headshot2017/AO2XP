@@ -41,10 +41,13 @@ self.iniswaprefresh.move(8, 64)
 self.iniswaprefresh.resize(self.iniswaprefresh.sizeHint())
 
 self.paircheckbox.setGeometry(16, 16, 128, 24)
-self.pairdropdown.setGeometry(112, 64, 192, 18)
-self.pairoffset.setGeometry(114, 128, 192, 24)
+self.pairdropdown.setGeometry(112, 20, 192, 18)
+self.pairoffset.setGeometry(114, 48, 192, 24)
 self.pairoffset_l.move(self.pairoffset.x() - 88, self.pairoffset.y()+4)
 self.pairoffsetreset.move(self.pairoffset.x() + self.pairoffset.size().width() + 8, self.pairoffset.y())
+self.pair_order_l.move(self.pairoffset_l.x(), self.pairoffset_l.y()+32)
+self.pair_order.setGeometry(self.pairoffset.x(), self.pair_order_l.y()-4, 80, self.pairoffsetreset.sizeHint().height())
+
 self.spacebartext.move(self.mocktext.x(), self.mocktext.y()+24)
 self.autocaps.move(self.spacebartext.x(), self.spacebartext.y()+24)
 

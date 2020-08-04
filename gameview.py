@@ -737,14 +737,16 @@ class gui(QtGui.QWidget):
 		self.paircheckbox = QtGui.QCheckBox(self.gametab_pair)
 		self.paircheckbox.setChecked(False)
 		self.pairdropdown = QtGui.QComboBox(self.gametab_pair)
-		self.pairdropdown_l = QtGui.QLabel("Pair with...", self.gametab_pair)
-		self.pairdropdown_l.move(self.pairdropdown.x() - 64, self.pairdropdown.y()+2)
 		self.pairoffset = QtGui.QSlider(QtCore.Qt.Horizontal, self.gametab_pair)
 		self.pairoffset.setRange(-100, 100)
 		self.pairoffset.setValue(0)
 		self.pairoffset_l = QtGui.QLabel("Position offset", self.gametab_pair)
 		self.pairoffsetreset = QtGui.QPushButton("Reset", self.gametab_pair)
 		self.pairoffsetreset.clicked.connect(partial(self.pairoffset.setValue, 0))
+		self.pair_order = QtGui.QComboBox(self.gametab_pair)
+		self.pair_order.addItem("Front")
+		self.pair_order.addItem("Behind")
+		self.pair_order_l = QtGui.QLabel("Pairing order", self.gametab_pair)
 		
 		self.misc_layout = QtGui.QVBoxLayout(self.gametab_misc)
 		self.misc_layout.setAlignment(QtCore.Qt.AlignTop)
@@ -1392,6 +1394,8 @@ class gui(QtGui.QWidget):
 		if "cccc_ic_support" in self.features:
 			msg += self.showname+"#" # custom showname
 			msg += (str(self.pairdropdown.currentIndex()) if self.paircheckbox.isChecked() else "-1")+"#" # pair charID
+			if "effects" in self.features:
+				msg += "^%d#" % self.pair_order.currentIndex() # pair ordering
 			msg += str(self.pairoffset.value())+"#" # send this anyway; AO 2.8
 			msg += str(int(self.nointerruptbtn.isChecked()))+"#" # NoInterrupt(TM)
 		
@@ -1610,11 +1614,30 @@ class gui(QtGui.QWidget):
 		
 		side = self.m_chatmessage[SIDE]
 		emote_mod = int(self.m_chatmessage[EMOTE_MOD])
-		
+
+		# AO 2.8: always offset player
+		if side == "def":
+			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
+			vert_offset = 0
+			if hor_offset > 0:
+				vert_offset = hor_offset / 10
+			self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
+
+		elif side == "pro":
+			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
+			vert_offset = 0
+			if hor_offset < 0:
+				vert_offset = -1 * hor_offset / 10
+			self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
+
+		else:
+			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
+			self.char.move(256 * hor_offset / 100, 0)
+
+		# check if paired
 		if not self.m_chatmessage[OTHER_CHARID]:
 			self.sidechar.hide()
 			self.sidechar.move(0,0)
-			self.char.move(0,0)
 		else:
 			if "effects" in self.features:
 				got_other_charid = int(self.m_chatmessage[OTHER_CHARID].split("^")[0])
@@ -1623,74 +1646,81 @@ class gui(QtGui.QWidget):
 
 			if got_other_charid > -1:
 				self.sidechar.show()
-				
+
+				if "effects" in self.features:    
+					pair_order = int(self.m_chatmessage[OTHER_CHARID].split("^")[1])
+				else:    
+					pair_order = -1
+
 				if side == "def":
-					hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-					vert_offset = 0
-					if hor_offset > 0:
-						vert_offset = hor_offset / 10
-					self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
-					
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
 					vert2_offset = 0
 					if hor2_offset > 0:
 						vert2_offset = hor2_offset / 10
 					self.sidechar.move(256 * hor2_offset / 100, 192 * vert2_offset / 100)
-					
-					if hor2_offset >= hor_offset:
+
+					if pair_order == -1: # pair ordering not supported
+						if hor2_offset >= hor_offset:
+							self.sidechar.raise_()
+							self.char.raise_()
+						else:
+							self.char.raise_()
+							self.sidechar.raise_()
+					elif pair_order == 0: # front
 						self.sidechar.raise_()
 						self.char.raise_()
-					else:
-						self.char.raise_()
+					elif pair_order == 1: # behind
 						self.sidechar.raise_()
+						self.char.raise_()
 					self.bench.raise_()
 				
 				elif side == "pro":
-					hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-					vert_offset = 0
-					if hor_offset < 0:
-						vert_offset = -1 * hor_offset / 10
-					self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
-					
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
 					vert2_offset = 0
 					if hor2_offset < 0:
 						vert2_offset = -1 * hor2_offset / 10
 					self.sidechar.move(256 * hor2_offset / 100, 192 * vert2_offset / 100)
-					
-					if hor2_offset <= hor_offset:
+
+					if pair_order == -1: # pair ordering not supported
+						if hor2_offset <= hor_offset:
+							self.sidechar.raise_()
+							self.char.raise_()
+						else:
+							self.char.raise_()
+							self.sidechar.raise_()
+					elif pair_order == 0: # front
 						self.sidechar.raise_()
 						self.char.raise_()
-					else:
-						self.char.raise_()
+					elif pair_order == 1: # behind
 						self.sidechar.raise_()
+						self.char.raise_()
 					self.bench.raise_()
 				
 				else:
-					hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-					self.char.move(256 * hor_offset / 100, 0)
-					
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
 					self.sidechar.move(256 * hor2_offset / 100, 0)
-					
-					if hor2_offset >= hor_offset:
+
+					if pair_order == -1: # pair ordering not supported
+						if hor2_offset >= hor_offset:
+							self.sidechar.raise_()
+							self.char.raise_()
+						else:
+							self.char.raise_()
+							self.sidechar.raise_()
+					elif pair_order == 0: # front
 						self.sidechar.raise_()
 						self.char.raise_()
-					else:
-						self.char.raise_()
+					elif pair_order == 1: # behind
 						self.sidechar.raise_()
+						self.char.raise_()
 					self.bench.raise_()
-				
-				if self.m_chatmessage[OTHER_FLIP] == "1":
-					self.sidechar.set_flipped(True)
-				else:
-					self.sidechar.set_flipped(False)
+
+				self.sidechar.set_flipped(self.m_chatmessage[OTHER_FLIP] == "1")
 				self.sidechar.play_idle(self.m_chatmessage[OTHER_NAME], self.m_chatmessage[OTHER_EMOTE])
 			
 			else:
 				self.sidechar.hide()
 				self.sidechar.move(0, 0)
-				self.char.move(0, 0)
 		
 		if (emote_mod == 1 or emote_mod == 6 and self.m_chatmessage[PREANIM] != "-") or emote_mod == 2:
 			self.play_preanim(False)
