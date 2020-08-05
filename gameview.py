@@ -600,6 +600,7 @@ class gui(QtGui.QWidget):
 	blank_blip = False
 	chatmessage_is_empty = False
 	is_additive = False
+	additive_char = -1
 	anim_state = 3
 	text_state = 2
 	objection_state = 0
@@ -871,6 +872,7 @@ class gui(QtGui.QWidget):
 		self.additivebtn.setText('Additive text')
 		self.additivebtn.resize(self.additivebtn.sizeHint())
 		self.additivebtn.move(272+60, 272+28)
+		self.additivebtn.clicked.connect(self.onAdditiveCheck)
 
 		self.effectdropdown = QtGui.QComboBox(self)
 		self.effectdropdown.setGeometry(272+60, 272+28+18, 88, 20)
@@ -1000,6 +1002,13 @@ class gui(QtGui.QWidget):
 		self.setBackground('default')
 		
 		self.charselect = charselect.charselect(self)
+
+	def onAdditiveCheck(self):
+		if self.additivebtn.isChecked():
+			self.icchatinput.home(False)
+			self.icchatinput.insert(" ")
+			self.icchatinput.end(False)
+		self.icchatinput.setFocus()
 
 	def onRealizationButton(self):
 		if self.realizationbtn.isPressed():
@@ -1580,6 +1589,8 @@ class gui(QtGui.QWidget):
 			if f_char_id == self.mychar and self.m_chatmessage[CHATMSG] == chatmsgcomp: # our message showed up
 				del self.msgqueue[0]
 				self.msgqueueList.takeItem(0)
+				if self.additivebtn.isChecked():
+					self.icchatinput.insert(" ")
 		
 		f_char = self.m_chatmessage[CHARNAME]
 		evidence = int(self.m_chatmessage[EVIDENCE])-1
@@ -1709,24 +1720,22 @@ class gui(QtGui.QWidget):
 			self.bench.hide()
 			self.court.setPixmap(self.side_jud if self.side_sea.isNull() else self.side_sea)
 			self.presentedevi.move(16, 16)
-	
+
 	def objection_done(self):
 		self.handle_chatmessage_2()
-	
+
 	def handle_chatmessage_2(self):
 		self.zoom.setZoom(False)
 		self.char.stop()
 		self.effectview.stop()
-		
+
 		if not self.m_chatmessage[SHOWNAME]:
 			self.name.setText(self.m_chatmessage[CHARNAME])
 		else:
 			self.name.setText(self.m_chatmessage[SHOWNAME].decode("utf-8"))
-		
-		self.ao2text.clear()
-		self.text.setText("")
+
 		self.chatbox.hide()
-		
+
 		self.set_scene()
 		self.set_text_color()
 		
@@ -2006,10 +2015,14 @@ class gui(QtGui.QWidget):
 		elif self.m_chatmessage[REALIZATION] == "1":
 			self.setWhiteFlash(True, 1, 125)
 		
-		self.ao2text.clear()
-		self.text.setText("")
 		self.set_text_color()
-		
+
+		charid = int(self.m_chatmessage[CHAR_ID])
+		if not self.is_additive or self.additive_char != charid:
+			self.ao2text.clear()
+			self.text.setText("")
+			self.additive_char = charid
+
 		if self.chatmessage_is_empty:
 			self.text_state = 2
 			return
@@ -2017,14 +2030,14 @@ class gui(QtGui.QWidget):
 		self.inline_color_stack = []
 		
 		self.chatbox.show()
+
 		self.tick_pos = 0
 		self.blip_pos = 0
 		self.inline_blue_depth = 0
 		
 		self.current_display_speed = 3
 		self.chat_tick_timer.start(self.message_display_speed[self.current_display_speed])
-		
-		charid = int(self.m_chatmessage[CHAR_ID])
+
 		self.blip = self.charlist[charid][2]
 
 		if exists(AOpath+"sounds/general/sfx-blip"+self.blip+".wav"):
