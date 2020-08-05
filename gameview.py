@@ -76,6 +76,13 @@ def get_option(section, value, default=""):
 	tempini.read("base/ao2xp.ini")
 	return ini.read_ini(tempini, section, value, default)
 
+def get_img_suffix(path):
+    if exists(path): return path
+    if exists(path+".webp"): return path+".webp"
+    if exists(path+".apng"): return path+".apng"
+    if exists(path+".gif"): return path+".gif"
+    return path+".png"
+
 def get_text_color(textcolor):
 	if textcolor == 0 or textcolor == 6:
 		return QtGui.QColor(255, 255, 255)
@@ -278,7 +285,6 @@ class AOCharMovie(QtGui.QLabel):
 
 		elif self.use_pillow == 1: # apng
 			self.pillow_frames = images.load_apng(apng_path)
-			#print apng_path, self.pillow_frames[0], int(self.pillow_frames[0][1] * self.pillow_speed) if len(self.pillow_frames[0]) > 1 else 0
 			if len(self.pillow_frames) > 1: self.pillow_timer.start(int(self.pillow_frames[0][1] * self.pillow_speed))
 			self.set_pillow_frame()
 
@@ -409,43 +415,63 @@ class AOCharMovie(QtGui.QLabel):
 class AOMovie(QtGui.QLabel):
 	play_once = True
 	done = QtCore.pyqtSignal()
-	
+	use_pillow = 0
+	pillow_frames = []
+	pillow_frame = 0
+	pillow_speed = 1
+
 	def __init__(self, parent):
 		QtGui.QLabel.__init__(self, parent)
 		self.m_movie = QtGui.QMovie()
 		self.setMovie(self.m_movie)
 		self.m_movie.frameChanged.connect(self.frame_change)
+
+		self.pillow_timer = QtCore.QTimer(self)
+		self.pillow_timer.setSingleShot(True)
+		self.pillow_timer.timeout.connect(self.pillow_frame_change)
 	
 	def set_play_once(self, once):
 		self.play_once = once
 	
-	def play(self, p_gif, p_char):
-		self.m_movie.stop()
+	def play(self, p_image, p_char=""):
+		self.stop()
+
+		gif_path = p_image
+		pillow_modes = {".gif": 0, ".apng": 1, ".webp": 2}
 		
-		gif_path = ""
-		
-		custom_path = ""
-		if p_gif == "custom":
-			custom_path = AOpath+"characters/"+p_char+"/"+p_gif+".gif"
-		else:
-			custom_path = AOpath+"characters/"+p_char+"/"+p_gif+"_bubble.gif"
-		
-		theme_path = AOpath+"themes/default/"+p_gif+".gif"
-		placeholder_path = AOpath+"themes/default/placeholder.gif"
-		
-		if exists(custom_path):
-			gif_path = custom_path
-		elif exists(theme_path):
-			gif_path = theme_path
-		else:
-			gif_path = placeholder_path
-		
-		self.m_movie.setFileName(gif_path)
-		
+		if not exists(gif_path):
+			pathlist = [
+				get_img_suffix("base/characters/"+p_char+"/"+p_image),
+				get_img_suffix("base/misc/default/"+p_image),
+				get_img_suffix("base/themes/default/"+p_image),
+				"base/themes/default/placeholder.gif"
+				]
+			
+			for f in pathlist:
+				if exists(f):
+					gif_path = f
+					break
+
+		self.use_pillow = pillow_modes[os.path.splitext(gif_path)[1]]
+		if not self.use_pillow:
+			self.m_movie.setFileName(gif_path)
+			self.m_movie.start()
+		elif self.use_pillow == 1: # apng
+			self.pillow_frames = images.load_apng(gif_path)
+			if len(self.pillow_frames) > 1: self.pillow_timer.start(int(self.pillow_frames[0][1] * self.pillow_speed))
+			self.set_pillow_frame()
+		elif self.use_pillow == 2: # webp
+			self.pillow_loops = 0
+			self.pillow_frames, self.webp_loops = images.load_webp(gif_path)
+			if len(self.pillow_frames) > 1: self.pillow_timer.start(int(self.pillow_frames[0][1] * self.pillow_speed))
+			self.set_pillow_frame()
+
 		self.show()
-		self.m_movie.start()
 	
 	def stop(self):
+		self.pillow_frames = []
+		self.pillow_frame = 0
+		self.pillow_timer.stop()
 		self.m_movie.stop()
 		self.hide()
 	
@@ -455,6 +481,35 @@ class AOMovie(QtGui.QLabel):
 			delay(self.m_movie.nextFrameDelay())
 			self.stop()
 			self.done.emit()
+
+	@QtCore.pyqtSlot()
+	def pillow_frame_change(self):
+		if not self.pillow_frames: return
+
+		if len(self.pillow_frames)-1 == self.pillow_frame:
+			if self.play_once or (self.use_pillow == 2 and self.pillow_loops+1 == self.webp_loops):
+				delay(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+				self.stop()
+				self.done.emit()
+			elif len(self.pillow_frames) > 1: # loop
+				self.pillow_loops += 1
+				self.pillow_frame = 0
+				self.pillow_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+		elif len(self.pillow_frames) > 1:
+			self.pillow_frame += 1
+			self.pillow_timer.start(int(self.pillow_frames[self.pillow_frame][1] * self.pillow_speed))
+
+		self.set_pillow_frame()
+
+	def set_pillow_frame(self):
+		if not self.pillow_frames: return
+
+		f_img = self.pillow_frames[self.pillow_frame][0]
+		if f_img.size().width() != 256 or f_img.size().height() != 192:
+			f_img = f_img.scaled(256, 192, transformMode=QtCore.Qt.SmoothTransformation)
+
+		f_pixmap = QtGui.QPixmap.fromImage(f_img)
+		self.setPixmap(f_pixmap)
 
 class ZoomLines(QtGui.QLabel):
 
@@ -540,10 +595,11 @@ class gui(QtGui.QWidget):
 	time_mod = 40
 	blip = "male"
 	blipsnd = None
-	chatmessage_size = 24
+	chatmessage_size = 31
 	m_chatmessage = []
 	blank_blip = False
 	chatmessage_is_empty = False
+	is_additive = False
 	anim_state = 3
 	text_state = 2
 	objection_state = 0
@@ -636,10 +692,11 @@ class gui(QtGui.QWidget):
 		self.name.resize(248, self.name.sizeHint().height())
 		self.wtceview = WTCE_View(self)
 		self.WTCEsignal.connect(self.wtceview.showWTCE)
-		
+
 		self.objectionview = AOMovie(self)
 		self.objectionview.done.connect(self.objection_done)
-		
+		self.effectview = AOMovie(self)
+
 		self.whiteflashlab = QtGui.QLabel(self)
 		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/realizationflash.png'))
 		self.whiteflashlab.setGeometry(0, 0, 256, 192)
@@ -805,9 +862,19 @@ class gui(QtGui.QWidget):
 		self.nointerruptbtn = QtGui.QCheckBox(self)
 		self.nointerruptbtn.setChecked(False)
 		self.nointerruptbtn.setText('No Interrupt')
-		self.nointerruptbtn.resize(self.sfxbutton.sizeHint())
+		self.nointerruptbtn.resize(self.nointerruptbtn.sizeHint())
 		self.nointerruptbtn.move(272, 272+8)
-		
+        
+        # AO 2.8
+		self.additivebtn = QtGui.QCheckBox(self)
+		self.additivebtn.setChecked(False)
+		self.additivebtn.setText('Additive text')
+		self.additivebtn.resize(self.additivebtn.sizeHint())
+		self.additivebtn.move(272+60, 272+28)
+
+		self.effectdropdown = QtGui.QComboBox(self)
+		self.effectdropdown.setGeometry(272+60, 272+28+18, 88, 20)
+
 		self.changechar = QtGui.QPushButton(self)
 		self.changechar.setText('Switch character')
 		self.changechar.setGeometry(10, 344, 121, 23)
@@ -844,8 +911,10 @@ class gui(QtGui.QWidget):
 		self.prevemotepage.hide()
 		self.nextemotepage = NextEmoteButton(self, 236, 253)
 		self.nextemotepage.show()
-		self.realizationbtn = buttons.RealizationButton(self, 265, 192)
+		self.realizationbtn = buttons.AOToggleButton(self, 265, 192, "realization")
+		self.realizationbtn.clicked.connect(self.onRealizationButton)
 		self.realizationsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-realization.wav', 0, 0, 0)
+		self.shakebtn = buttons.AOToggleButton(self, 265+42, 192, "screenshake") # AO 2.8
 		self.customobject = buttons.CustomObjection(self, 250, 312)
 		self.holditbtn = buttons.Objections(self, 10, 312, 1)
 		self.objectbtn = buttons.Objections(self, 90, 312, 2)
@@ -931,7 +1000,13 @@ class gui(QtGui.QWidget):
 		self.setBackground('default')
 		
 		self.charselect = charselect.charselect(self)
-	
+
+	def onRealizationButton(self):
+		if self.realizationbtn.isPressed():
+			self.effectdropdown.setCurrentIndex(1) # realization
+		elif self.effectdropdown.currentText() == "realization":
+			self.effectdropdown.setCurrentIndex(0)
+
 	def onOOCLoginBtn(self):
 		password, ok = QtGui.QInputDialog.getText(self, "Login as moderator", "Enter password.")
 		if password and ok:
@@ -1091,12 +1166,19 @@ class gui(QtGui.QWidget):
 	def loadCharacter(self, charname):
 		exec open("base/ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
 
+		self.effectdropdown.clear()
 		self.emotedropdown.clear()
 		self.msgqueueList.clear()
 		self.msgqueue = []
 		self.charemotes = []
 		self.selectedemote = 0
 		self.current_emote_page = 0
+
+		effectslist = ini.get_effects(charname)
+		self.effectdropdown.setVisible(bool(effectslist))
+		if effectslist:
+			effectslist.insert(0, "No effect")
+			self.effectdropdown.addItems(effectslist)
 
 		self.charname = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "options", "name", charname)
 		self.charside = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "options", "side", "def")
@@ -1111,10 +1193,12 @@ class gui(QtGui.QWidget):
 			emote = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "emotions", str(emoteind), 'normal#(a)normal#normal#0#')
 			sound = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundn", str(emoteind), '1')
 			soundt = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundt", str(emoteind), '0')
+			soundl = ini.read_ini(AOpath + 'characters/' + charname + '/char.ini', "soundl", str(emoteind), '0') # AO 2.8
 			emotelist = emote.split('#')
 			del emotelist[len(emotelist) - 1]
 			emotelist.append(sound)
 			emotelist.append(soundt)
+			emotelist.append(soundl) # AO 2.8
 			self.charemotes.append(emotelist)
 			if emotelist[0]:
 				self.emotedropdown.addItem(emotelist[0])
@@ -1366,7 +1450,8 @@ class gui(QtGui.QWidget):
 			else:
 				modifier = 2
 		
-		msg = "MS#chat#"
+		msg = "MS#"
+		msg += "1#" # visible desk modifier
 		msg += emote[1]+"#" #pre-anim
 		msg += self.charname+"#"
 		msg += emote[2]+"#" #anim
@@ -1393,18 +1478,50 @@ class gui(QtGui.QWidget):
 		
 		if "cccc_ic_support" in self.features:
 			msg += self.showname+"#" # custom showname
-			msg += (str(self.pairdropdown.currentIndex()) if self.paircheckbox.isChecked() else "-1")+"#" # pair charID
-			if "effects" in self.features:
-				msg += "^%d#" % self.pair_order.currentIndex() # pair ordering
+			if self.paircheckbox.isChecked():
+				msg += str(self.pairdropdown.currentIndex())+"#" # pair charID
+				if "effects" in self.features:
+					msg += "^%d#" % self.pair_order.currentIndex() # pair ordering
+			else:
+				msg += "-1#"
+
 			msg += str(self.pairoffset.value())+"#" # send this anyway; AO 2.8
 			msg += str(int(self.nointerruptbtn.isChecked()))+"#" # NoInterrupt(TM)
-		
+
+		if "looping_sfx" in self.features: # AO 2.8
+			msg += emote[6]+"#" # loop sound?
+			msg += "%d#" % self.shakebtn.isPressed() # screen shake
+			emotes_to_check = [emote[1], "(b)"+emote[2], "(a)"+emote[2]]
+			effects_to_check = ["_FrameScreenshake", "_FrameRealization", "_FrameSFX"]
+
+			for f_effect in effects_to_check:
+				packet = ""
+				for f_emote in emotes_to_check:
+					packet += f_emote
+					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "network frame effects"):
+						sfx_frames = "|".join(ini.read_ini_tags(AOpath+"characters/"+self.charname+"/char.ini", f_emote + f_effect))
+						if sfx_frames:
+							packet += "|" + sfx_frames
+					packet += "^"
+				msg += packet+"#"
+
+		if "additive" in self.features:
+			msg += "%d#" % self.additivebtn.isChecked()
+
+		if "effects" in self.features:
+			fx = self.effectdropdown.currentText() if self.effectdropdown.currentIndex() > 0 else ""
+			fx_sound = ini.get_effect_sound(fx, self.charname)
+			p_effect = ini.read_ini(AOpath+"characters/"+self.charname+"/char.ini", "options", "effects")
+			msg += fx + "|" + p_effect + "|" + fx_sound + "#"
+			self.effectdropdown.setCurrentIndex(0)
+
 		msg += "%"
 		self.msgqueueList.addItem(self.icchatinput.text())
 		self.msgqueue.append(msg)
 		
 		self.icchatinput.clear()
 		self.realizationbtn.setPressed(False)
+		self.shakebtn.setPressed(False)
 
 	def setBackground(self, bg):
 		if not exists(AOpath + 'background/' + bg):
@@ -1433,7 +1550,7 @@ class gui(QtGui.QWidget):
 		AO2chat = "cccc_ic_support" in self.features
 		
 		for n_string in range(self.chatmessage_size):
-			if n_string < len(p_contents) and n_string < 16 or AO2chat:
+			if n_string < len(p_contents) and (n_string < 16 or AO2chat):
 				self.m_chatmessage[n_string] = p_contents[n_string]
 			else:
 				self.m_chatmessage[n_string] = ""
@@ -1460,7 +1577,7 @@ class gui(QtGui.QWidget):
 		
 		if self.msgqueue:
 			chatmsgcomp = str(self.msgqueue[0].split('#')[5]).decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#')
-			if f_char_id == self.mychar and self.m_chatmessage[CHATMSG] == chatmsgcomp:
+			if f_char_id == self.mychar and self.m_chatmessage[CHATMSG] == chatmsgcomp: # our message showed up
 				del self.msgqueue[0]
 				self.msgqueueList.takeItem(0)
 		
@@ -1488,8 +1605,17 @@ class gui(QtGui.QWidget):
 				pass
 				
 			self.icLog.append('[%d:%.2d] %s: %s\n%s presented an evidence: %s' % (t[3], t[4], logcharname, self.m_chatmessage[CHATMSG], f_char, eviname))
-		
-		objection_mod = int(self.m_chatmessage[SHOUT_MOD])
+
+		self.is_additive = (self.m_chatmessage[ADDITIVE] == "1")
+
+		custom_objection = "custom"
+		try: objection_mod = int(self.m_chatmessage[SHOUT_MOD])
+		except:
+			if "4&" in self.m_chatmessage[SHOUT_MOD]: # custom objection name
+				objection_mod = 4
+				custom_objection = self.m_chatmessage[SHOUT_MOD].split("4&")[1] # get the name
+			else: # just in case of mindfuckery
+				objection_mod = 0
 		
 		if objection_mod <= 4 and objection_mod >= 1:
 			if objection_mod == 1:
@@ -1499,7 +1625,10 @@ class gui(QtGui.QWidget):
 			elif objection_mod == 3:
 				self.objectionview.play("takethat", f_char)
 			elif objection_mod == 4:
-				self.objectionview.play("custom", f_char)
+				if custom_objection != "custom":
+					self.objectionview.play("custom_objections/"+custom_objection, f_char)
+				else:
+					self.objectionview.play(custom_objection, f_char)
 			self.playObjectionSnd(f_char, objection_mod)
 			
 			emote_mod = int(self.m_chatmessage[EMOTE_MOD])
@@ -1587,6 +1716,7 @@ class gui(QtGui.QWidget):
 	def handle_chatmessage_2(self):
 		self.zoom.setZoom(False)
 		self.char.stop()
+		self.effectview.stop()
 		
 		if not self.m_chatmessage[SHOWNAME]:
 			self.name.setText(self.m_chatmessage[CHARNAME])
@@ -1841,12 +1971,39 @@ class gui(QtGui.QWidget):
 					if snd:
 						BASS_ChannelPlay(snd, True)
 					break
-	
+
+	def do_effect(self, fx_name, fx_sound, p_char, p_folder):
+		effect = ini.get_effect(fx_name, p_char, p_folder)
+		if not effect: return
+
+		if fx_sound:
+			self.playSound(fx_sound)
+
+		if "effects" not in self.features: return
+
+		self.effectview.set_play_once(False)
+		self.effectview.play(effect)
+
 	def start_chat_ticking(self):
 		if self.text_state != 0:
 			return
-		
-		if self.m_chatmessage[REALIZATION] == "1":
+
+		if self.m_chatmessage[EFFECTS]:
+			fx_list = self.m_chatmessage[EFFECTS].split("|")
+			fx = fx_list[0]
+			fx_sound = ""
+			fx_folder = ""
+
+			if len(fx_list) > 1:
+				fx_sound = fx_list[1]
+			if len(fx_list) > 2:
+				fx_folder = fx_list[1]
+				fx_sound = fx_list[2]
+
+			if fx and fx != "-":
+				self.do_effect(fx, fx_sound, self.m_chatmessage[CHARNAME], fx_folder)
+
+		elif self.m_chatmessage[REALIZATION] == "1":
 			self.setWhiteFlash(True, 1, 125)
 		
 		self.ao2text.clear()
@@ -1895,7 +2052,7 @@ class gui(QtGui.QWidget):
 		else:
 			f_character2 = f_message[self.tick_pos]
 			f_character = QtCore.QString(f_character2)
-			
+
 			if f_character == " ":
 				self.text.setText(self.text.text() + " ")
 				self.ao2text.insertPlainText(" ")
@@ -1976,6 +2133,14 @@ class gui(QtGui.QWidget):
 				else:
 					self.inline_color_stack.append(INLINE_GREEN)
 					formatting_char = True
+
+			elif f_character == "f" and self.next_character_is_not_special: # flash
+				self.setWhiteFlash(True, 0, 75)
+				self.next_character_is_not_special = False
+
+			elif f_character == "n" and self.next_character_is_not_special: # newline
+				self.text.setText(self.text.text() + "\n")
+				self.ao2text.insertPlainText("\n")
 			
 			else:
 				self.next_character_is_not_special = False
@@ -2004,12 +2169,12 @@ class gui(QtGui.QWidget):
 					self.ao2text.setAlignment(QtCore.Qt.AlignLeft)
 					self.text.setAlignment(QtCore.Qt.AlignLeft)
 			
-			if f_message[self.tick_pos] != " " or self.blank_blip:
-				if self.blip_pos % self.blip_rate == 0 and not formatting_char:
-					self.blip_pos = 0
-					BASS_ChannelPlay(self.blipsnd, True)
+				if f_message[self.tick_pos] != " " or self.blank_blip:
+					if self.blip_pos % self.blip_rate == 0 and not formatting_char:
+						self.blip_pos = 0
+						BASS_ChannelPlay(self.blipsnd, True)
 					
-				self.blip_pos += 1
+					self.blip_pos += 1
 			
 			self.tick_pos += 1
 			

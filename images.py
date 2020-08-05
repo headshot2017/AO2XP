@@ -73,7 +73,7 @@ def load_webp(file):
         img.load() # strange thing with Pillow and animated webp's is that the img.info dictionary attr doesn't update unless you call a function like this
         frames.append([img.toqimage(), img.info["duration"]])
 
-    return frames
+    return frames, img.info["loop"]
 
 def get_apng_duration(file):
     img = APNG.open(file)
