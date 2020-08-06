@@ -443,6 +443,7 @@ class AOMovie(QtGui.QLabel):
 			pathlist = [
 				get_img_suffix("base/characters/"+p_char+"/"+p_image),
 				get_img_suffix("base/misc/default/"+p_image),
+				get_img_suffix("base/misc/default/"+p_image+"_bubble"),
 				get_img_suffix("base/themes/default/"+p_image),
 				"base/themes/default/placeholder.gif"
 				]
@@ -707,6 +708,9 @@ class gui(QtGui.QWidget):
 		self.whiteflash = QtCore.QTimer()
 		self.whiteflash.setSingleShot(False)
 		self.whiteflash.timeout.connect(partial(self.setWhiteFlash, False))
+
+		self.screenshake = QtCore.QTimer()
+		self.screenshake.timeout.connect(self.screenShakeTick)
 		
 		self.ooclog = ChatLogs(self, 1)
 		self.ooclog.setReadOnly(True)
@@ -1004,6 +1008,9 @@ class gui(QtGui.QWidget):
 		self.setBackground('default')
 		
 		self.charselect = charselect.charselect(self)
+
+	def screenShakeTick(self):
+		pass
 
 	def onAdditiveCheck(self):
 		if self.additivebtn.isChecked():
@@ -1633,17 +1640,9 @@ class gui(QtGui.QWidget):
 				objection_mod = 0
 		
 		if objection_mod <= 4 and objection_mod >= 1:
-			if objection_mod == 1:
-				self.objectionview.play("holdit", f_char)
-			elif objection_mod == 2:
-				self.objectionview.play("objection", f_char)
-			elif objection_mod == 3:
-				self.objectionview.play("takethat", f_char)
-			elif objection_mod == 4:
-				if custom_objection != "custom":
-					self.objectionview.play("custom_objections/"+custom_objection, f_char)
-				else:
-					self.objectionview.play(custom_objection, f_char)
+			objections = [None, "holdit", "objection", "takethat", "custom_objections/"+custom_objection if custom_objection != "custom" else "custom"]
+			print objections[objection_mod], f_char
+			self.objectionview.play(objections[objection_mod], f_char)
 			self.playObjectionSnd(f_char, objection_mod)
 			
 			emote_mod = int(self.m_chatmessage[EMOTE_MOD])
