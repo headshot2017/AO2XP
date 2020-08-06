@@ -80,7 +80,7 @@ def get_apng_duration(file):
     dur = 0
 
     for frame, frame_info in img.frames:
-        dur += frame_info.delay*10 # convert delay from centiseconds to milliseconds
+        if frame_info: dur += frame_info.delay*10 # convert delay from centiseconds to milliseconds
 
     return dur
 
