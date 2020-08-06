@@ -1488,9 +1488,11 @@ class gui(QtGui.QWidget):
 		if "cccc_ic_support" in self.features:
 			msg += self.showname+"#" # custom showname
 			if self.paircheckbox.isChecked():
-				msg += str(self.pairdropdown.currentIndex())+"#" # pair charID
+				msg += str(self.pairdropdown.currentIndex()) # pair charID
 				if "effects" in self.features:
 					msg += "^%d#" % self.pair_order.currentIndex() # pair ordering
+				else:
+					msg += "#"
 			else:
 				msg += "-1#"
 
