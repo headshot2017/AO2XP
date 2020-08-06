@@ -44,6 +44,7 @@ INLINE_BLUE = 0
 INLINE_GREEN = 1
 INLINE_ORANGE = 2
 INLINE_GRAY = 3
+INLINE_RED = 4
 
 C_WHITE = 0
 C_GREEN = 1
@@ -2183,13 +2184,21 @@ class gui(QtGui.QWidget):
 				if self.inline_color_stack:
 					if self.inline_color_stack[-1] == INLINE_GREEN:
 						del self.inline_color_stack[-1]
-						formatting_char = True
 					else:
 						self.inline_color_stack.append(INLINE_GREEN)
-						formatting_char = True
 				else:
 					self.inline_color_stack.append(INLINE_GREEN)
-					formatting_char = True
+				formatting_char = True
+
+			elif f_character == "~" and not self.next_character_is_not_special: #green.
+				if self.inline_color_stack:
+					if self.inline_color_stack[-1] == INLINE_RED:
+						del self.inline_color_stack[-1]
+					else:
+						self.inline_color_stack.append(INLINE_RED)
+				else:
+					self.inline_color_stack.append(INLINE_RED)
+				formatting_char = True
 
 			elif f_character == "s" and self.next_character_is_not_special: # shake
 				self.setScreenShake(True)
@@ -2216,6 +2225,8 @@ class gui(QtGui.QWidget):
 						self.ao2text.insertHtml("<font color=\"" + get_text_color(C_GREEN).name() + "\">" + f_character + "</font>")
 					elif top_color == INLINE_GRAY:
 						self.ao2text.insertHtml("<font color=\"" + get_text_color("_inline_grey").name() + "\">" + f_character + "</font>")
+					elif top_color == INLINE_RED:
+						self.ao2text.insertHtml("<font color=\"" + get_text_color(C_RED).name() + "\">" + f_character + "</font>")
 					else:
 						self.ao2text.insertHtml(f_character)
 				else:
