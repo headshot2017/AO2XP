@@ -1901,10 +1901,10 @@ class gui(QtGui.QWidget):
 			else:
 				self.sidechar.hide()
 				self.sidechar.move(0, 0)
-		
-		if (emote_mod == 1 or emote_mod == 6 and self.m_chatmessage[PREANIM] != "-") or emote_mod == 2:
+
+		if ((emote_mod == 1 or emote_mod == 6) and self.m_chatmessage[PREANIM] != "-") or emote_mod == 2:
 			self.play_preanim(False)
-		elif emote_mod == 0 or emote_mod == 5:
+		elif emote_mod == 0 or emote_mod == 5 or self.m_chatmessage[PREANIM] == "-":
 			if self.m_chatmessage[NO_INTERRUPT] == "0":
 				self.handle_chatmessage_3()
 			else:
