@@ -665,6 +665,8 @@ class gui(QtGui.QWidget):
 		self.court.setPixmap(QtGui.QPixmap(AOpath + 'background/default/defenseempty.png'))
 		self.bench.setPixmap(bench)
 
+		self.effectview = AOMovie(self)
+
 		self.chatbox = QtGui.QLabel(self)
 		chatbox = QtGui.QPixmap(AOpath + 'themes/default/chatmed.png')
 		chatboxheight = chatbox.size().height()
@@ -697,7 +699,6 @@ class gui(QtGui.QWidget):
 
 		self.objectionview = AOMovie(self)
 		self.objectionview.done.connect(self.objection_done)
-		self.effectview = AOMovie(self)
 
 		self.whiteflashlab = QtGui.QLabel(self)
 		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/realizationflash.png'))
