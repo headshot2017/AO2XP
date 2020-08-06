@@ -184,6 +184,8 @@ class AOCharMovie(QtGui.QLabel):
 	pillow_frames = []
 	pillow_frame = 0
 	pillow_speed = 0
+	xx = 0 # for restoring from screenshake
+	yy = 0 # for restoring from screenshake
 
 	def __init__(self, parent):
 		QtGui.QLabel.__init__(self, parent)
@@ -203,6 +205,12 @@ class AOCharMovie(QtGui.QLabel):
 		self.preanim_timer.timeout.connect(self.timer_done)
 		self.pillow_timer.timeout.connect(self.pillow_frame_change)
 		self.m_movie.frameChanged.connect(self.frame_change)
+
+	def move(self, x, y, screenShaking=False):
+		if not screenShaking:
+			self.xx = x
+			self.yy = y
+		super(AOCharMovie, self).move(x, y)
 	
 	def set_flipped(self, flip):
 		self.m_flipped = flip
@@ -419,6 +427,8 @@ class AOMovie(QtGui.QLabel):
 	pillow_frames = []
 	pillow_frame = 0
 	pillow_speed = 1
+	xx = 0 # for restoring from screenshake
+	yy = 0 # for restoring from screenshake
 
 	def __init__(self, parent):
 		QtGui.QLabel.__init__(self, parent)
@@ -429,7 +439,12 @@ class AOMovie(QtGui.QLabel):
 		self.pillow_timer = QtCore.QTimer(self)
 		self.pillow_timer.setSingleShot(True)
 		self.pillow_timer.timeout.connect(self.pillow_frame_change)
-	
+
+	def move(self, x, y):
+		self.xx = x
+		self.yy = y
+		super(AOMovie, self).move(x, y)
+
 	def set_play_once(self, once):
 		self.play_once = once
 	
@@ -666,13 +681,13 @@ class gui(QtGui.QWidget):
 		self.court.setPixmap(QtGui.QPixmap(AOpath + 'background/default/defenseempty.png'))
 		self.bench.setPixmap(bench)
 
-		self.effectview = AOMovie(self)
+		self.effectview = AOMovie(self.viewport)
 
-		self.chatbox = QtGui.QLabel(self)
+		self.chatbox = QtGui.QLabel(self.viewport)
 		chatbox = QtGui.QPixmap(AOpath + 'themes/default/chatmed.png')
-		chatboxheight = chatbox.size().height()
+		self.chatboxheight = chatbox.size().height()
 		self.chatbox.setPixmap(chatbox)
-		self.chatbox.move(0, 192 - chatboxheight)
+		self.chatbox.move(0, 192 - self.chatboxheight)
 		
 		self.text = QtGui.QLabel(self.chatbox)
 		self.text.setWordWrap(True)
@@ -698,10 +713,10 @@ class gui(QtGui.QWidget):
 		self.wtceview = WTCE_View(self)
 		self.WTCEsignal.connect(self.wtceview.showWTCE)
 
-		self.objectionview = AOMovie(self)
+		self.objectionview = AOMovie(self.viewport)
 		self.objectionview.done.connect(self.objection_done)
 
-		self.whiteflashlab = QtGui.QLabel(self)
+		self.whiteflashlab = QtGui.QLabel(self.viewport)
 		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/realizationflash.png'))
 		self.whiteflashlab.setGeometry(0, 0, 256, 192)
 		self.whiteflashlab.hide()
@@ -711,6 +726,7 @@ class gui(QtGui.QWidget):
 
 		self.screenshake = QtCore.QTimer()
 		self.screenshake.timeout.connect(self.screenShakeTick)
+		self.shakes_remaining = 0
 		
 		self.ooclog = ChatLogs(self, 1)
 		self.ooclog.setReadOnly(True)
@@ -1010,7 +1026,25 @@ class gui(QtGui.QWidget):
 		self.charselect = charselect.charselect(self)
 
 	def screenShakeTick(self):
-		pass
+		self.shakes_remaining -= 1
+		shakeforce = 8
+		if self.shakes_remaining:
+			self.court.move(random.randint(-shakeforce, shakeforce), random.randint(-shakeforce, shakeforce))
+			self.zoom.move(random.randint(-shakeforce, shakeforce), random.randint(-shakeforce, shakeforce))
+			self.char.move(self.char.xx + random.randint(-shakeforce, shakeforce), self.char.yy + random.randint(-shakeforce, shakeforce), True)
+			self.sidechar.move(self.sidechar.xx + random.randint(-shakeforce, shakeforce), self.sidechar.yy + random.randint(-shakeforce, shakeforce), True)
+			self.chatbox.move(random.randint(-shakeforce, shakeforce), 192 - self.chatboxheight + random.randint(-shakeforce, shakeforce))
+			self.ao2text.move(-self.chatbox.x()+2, (192-self.chatboxheight-self.chatbox.y())+16)
+			self.text.move(-self.chatbox.x()+6, (192-self.chatboxheight-self.chatbox.y())+20)
+		else:
+			self.court.move(0,0)
+			self.zoom.move(0,0)
+			self.char.move(self.char.xx, self.char.yy, True)
+			self.sidechar.move(self.sidechar.xx, self.sidechar.yy, True)
+			self.chatbox.move(0, 192-self.chatboxheight)
+			self.ao2text.move(2,16)
+			self.text.move(6,20)
+			self.screenshake.stop()
 
 	def onAdditiveCheck(self):
 		if self.additivebtn.isChecked():
@@ -1174,6 +1208,10 @@ class gui(QtGui.QWidget):
 			self.playRealization()
 		if msec:
 			self.whiteflash.start(msec)
+
+	def setScreenShake(self, on, amount=20):
+		self.shakes_remaining = amount if on else 1
+		self.screenshake.start(25)
 
 	def WTCEbuttonPressed(self, type, variant):
 		if type != 2:
@@ -1640,9 +1678,8 @@ class gui(QtGui.QWidget):
 				objection_mod = 0
 		
 		if objection_mod <= 4 and objection_mod >= 1:
-			objections = [None, "holdit", "objection", "takethat", "custom_objections/"+custom_objection if custom_objection != "custom" else "custom"]
-			print objections[objection_mod], f_char
-			self.objectionview.play(objections[objection_mod], f_char)
+			objections = ["holdit", "objection", "takethat", "custom_objections/"+custom_objection if custom_objection != "custom" else "custom"]
+			self.objectionview.play(objections[objection_mod-1], f_char)
 			self.playObjectionSnd(f_char, objection_mod)
 			
 			emote_mod = int(self.m_chatmessage[EMOTE_MOD])
@@ -2048,7 +2085,11 @@ class gui(QtGui.QWidget):
 		elif exists(AOpath+"sounds/general/sfx-blip"+self.blip+".opus"):
 			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".opus", 0, 0, 0)
 		BASS_ChannelSetAttribute(self.blipsnd, BASS_ATTRIB_VOL, self.blipslider.value() / 100.0)
-		
+
+		emote_mod = int(self.m_chatmessage[EMOTE_MOD])
+		if emote_mod in (0, 5) and self.m_chatmessage[SCREENSHAKE] == "1":
+			self.setScreenShake(True)
+
 		self.text_state = 1
 	
 	def chat_tick(self):
@@ -2150,6 +2191,10 @@ class gui(QtGui.QWidget):
 					self.inline_color_stack.append(INLINE_GREEN)
 					formatting_char = True
 
+			elif f_character == "s" and self.next_character_is_not_special: # shake
+				self.setScreenShake(True)
+				self.next_character_is_not_special = False
+
 			elif f_character == "f" and self.next_character_is_not_special: # flash
 				self.setWhiteFlash(True, 0, 75)
 				self.next_character_is_not_special = False
@@ -2157,6 +2202,7 @@ class gui(QtGui.QWidget):
 			elif f_character == "n" and self.next_character_is_not_special: # newline
 				self.text.setText(self.text.text() + "\n")
 				self.ao2text.insertPlainText("\n")
+				self.next_character_is_not_special = False
 			
 			else:
 				self.next_character_is_not_special = False
