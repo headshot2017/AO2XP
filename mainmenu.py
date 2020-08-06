@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-import socket, thread, threading, time, random, traceback, hardware
+import socket, thread, time, random, traceback, hardware
 from os.path import exists
 
 AOpath = "base/"
@@ -23,17 +23,11 @@ class PicButton(QtGui.QAbstractButton):
 
 class lobby(QtGui.QWidget):
 	gamewindow = None
-	tcp = None
 	tab = 0
-	msgbox_signal = QtCore.pyqtSignal(int, str, str)
-	moveToGameSignal = QtCore.pyqtSignal(list)
-	gotServers = QtCore.pyqtSignal(list)
-	gotOOCMsg = QtCore.pyqtSignal(str, str)
 
 	def __init__(self, parent=None):
 		super(lobby, self).__init__(parent)
 		self.can_connect = False
-		self.connecting = False
 		self.svclicked = None
 		self.gamewindow = parent
 		self.pix_lobby = QtGui.QPixmap(AOpath+'themes/default/lobbybackground.png')
@@ -43,10 +37,6 @@ class lobby(QtGui.QWidget):
 		self.pix_btn_addfav = QtGui.QPixmap(AOpath+'themes/default/addtofav.png')
 		self.pix_btn_connect = QtGui.QPixmap(AOpath+'themes/default/connect.png')
 		self.pix_connecting = QtGui.QPixmap(AOpath+'themes/default/loadingbackground.png')
-		self.msgbox_signal.connect(self.showMessageBox)
-		self.moveToGameSignal.connect(self.moveToGame)
-		self.gotServers.connect(self.onGetServers)
-		self.gotOOCMsg.connect(self.newOOCMessage)
 		
 		if exists(AOpath+'serverlist.txt'):
 			with open(AOpath+'serverlist.txt') as file:
@@ -162,9 +152,25 @@ class lobby(QtGui.QWidget):
 		self.lobbychatinput.resize(427, 19)
 		self.lobbychatinput.setStyleSheet('background-color: rgb(87, 87, 87);')
 		self.lobbychatinput.returnPressed.connect(self.lobby_sendchat)
-		self.joinooc = []
-		
-		thread.start_new_thread(self.connect_to_ms, ())
+
+		self.aoserverinfo = AOServerInfo()
+		self.aoserverinfo.moveToGameSignal.connect(self.moveToGame)
+		self.aoserverinfo.msgbox_signal.connect(self.showMessageBox)
+		self.aoserverinfo.setOnlinePlayers.connect(self.onlineplayers.setText)
+		self.aoserverinfo.returnToLobby.connect(self.onClicked_cancelconnect)
+		self.aoserverinfo.setConnectProgress.connect(self.connectprogress.setText)
+		self.aoserverinfo.readySoon.connect(self.connectcancel.hide)
+		self.aoserverinfo.setWindowTitle.connect(self.gamewindow.setWindowTitle)
+		self.aoserverinfo.canConnect.connect(self.canConnect)
+
+		self.masterserver = MasterServer()
+		self.masterserver.gotServers.connect(self.onGetServers)
+		self.masterserver.gotOOCMsg.connect(self.newOOCMessage)
+		self.masterserver.msgbox_signal.connect(self.showMessageBox)
+		self.masterserver.start()
+
+	def canConnect(self):
+		self.can_connect = True
 
 	def onGetServers(self, servers):
 		if self.tab == 0: self.serverlist.clear()
@@ -259,7 +265,6 @@ class lobby(QtGui.QWidget):
 		if not self.can_connect:
 			return
 		self.connectprogress.setText('Connecting...')
-		self.connecting = True
 		self.connectingimg.show()
 		self.connectcancel.show()
 		self.connectprogress.show()
@@ -273,10 +278,9 @@ class lobby(QtGui.QWidget):
 		self.serverinfo.hide()
 		self.clientver.hide()
 		self.settingsbtn.hide()
-		self.tcp.send('askchaa#%')
+		self.aoserverinfo.tcp.send('askchaa#%')
 
 	def onClicked_cancelconnect(self):
-		self.connecting = False
 		self.connectingimg.hide()
 		self.connectcancel.hide()
 		self.connectprogress.hide()
@@ -294,211 +298,22 @@ class lobby(QtGui.QWidget):
 	def onClicked_serverlist(self, item):
 		self.svclicked = item
 		self.can_connect = False
-		if self.tcp:
-			self.tcp.close()
-		self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		args = (item, item)
-		thread.start_new_thread(self.get_sv_players, args)
 		self.onlineplayers.setText('Retrieving...')
-		for i in range(self.serverlist.count()):
-			if self.serverlist.item(i) == item and self.tab == 0:
-				self.serverinfo.setText(self.actual_serverlist[i][3])
 
-	def get_sv_players(self, item, *args, **kwargs):
-		tempdata = ""
-		gotChars = False
-		hplist = []
-		areas = [[], [], [], []]
-		features = []
-		pingtimer = 150
-		readytick = -1
 		text = item.text()
 		print '[debug]', 'you clicked %s' % text
 		for i in range(self.serverlist.count()):
 			if self.serverlist.item(i) == item:
 				if self.tab == 0:
+					self.serverinfo.setText(self.actual_serverlist[i][3])
+					self.aoserverinfo.setIP(text, *self.actual_serverlist[i][:2])
 					print '[debug]', 'ind: ' + str(i) + ', ip: ' + self.actual_serverlist[i][0] + ', port: ' + str(self.actual_serverlist[i][1])
-					try:
-						self.tcp.connect((self.actual_serverlist[i][0], self.actual_serverlist[i][1]))
-					except:
-						return self.onlineplayers.setText("couldn't retrieve players")
-
 				elif self.tab == 1:
+					self.aoserverinfo.setIP(text, *self.favoriteslist[i][:2])
 					print '[debug]', 'ind: ' + str(i) + ', ip: ' + self.favoriteslist[i][0] + ', port: ' + str(self.favoriteslist[i][1])
-					try:
-						self.tcp.connect((self.favoriteslist[i][0], int(self.favoriteslist[i][1])))
-					except:
-						return self.onlineplayers.setText("couldn't retrieve players")
 
-		self.tcp.settimeout(0.2)
-		while True:
-			pingtimer -= 1
-			if pingtimer == 0:
-				pingtimer = 150
-				self.tcp.send('CH#%')
-			
-			if readytick > -1:
-				readytick -= 1
-				if readytick == 0:
-					readytick = -1
-					try:
-						self.moveToGameSignal.emit([self.tcp, charlist, musiclist, background, evidence, areas, features, self.joinooc, hplist])
-					except Exception as err:
-						self.msgbox_signal.emit(0, "Error caught while loading", traceback.format_exc(err))
-						self.onClicked_cancelconnect()
-						return
-					
-					self.gamewindow.setWindowTitle(text)
-					thread.exit()
-					
-			try:
-				contents = self.tcp.recv(16384)
-			except (socket.timeout, socket.error) as err:
-				error = err.args[0]
-				if error == "timed out" or error == 10035:
-					continue
-				else:
-					if not got_stuff:
-						return self.onlineplayers.setText('something wrong happened')
-					thread.exit()
-			
-			if not contents.endswith("%"):
-				tempdata += contents
-				continue
-			else:
-				if tempdata:
-					contents = tempdata + contents
-					tempdata = ""
-
-			totals = contents.split('%')
-			for g in totals:
-				network = g.split('#')
-				header = network[0]
-				
-				if header == 'PN':
-					players = int(network[1])
-					maxplayers = int(network[2])
-					self.can_connect = True
-					self.onlineplayers.setText('%d/%d players online' % (players, maxplayers))
-					got_stuff = True
-				
-				elif header == "decryptor":
-					self.tcp.send("HI#AO2XP %s#%%" % hardware.get_hdid())
-				
-				elif header == "ID":
-					self.tcp.send("ID#AO2#69.1337.420#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
-					
-				elif header == "FL":
-					features = network[1:]
-					print features
-				
-				elif header == 'BD':
-					reason = network[1].decode("utf-8") if len(network) > 1 else "Failed to receive ban reason (old server version?)" # new in AO2 2.6
-					self.onlineplayers.setText('Banned')
-					self.msgbox_signal.emit(0, "Banned", "Reason:\n"+reason)
-					self.tcp.close()
-					thread.exit()
-					
-				elif header == 'SI':
-					if not self.connecting:
-						continue
-					maxchars = int(network[1])
-					maxevidence = int(network[2])
-					maxmusic = int(network[3])
-					self.connectprogress.setText('Requesting character list (%d)...' % maxchars)
-					self.tcp.send('RC#%')
-					print '[client]', '%d characters, %d pieces of evidence and %d songs' % (maxchars, maxevidence, maxmusic)
-					
-				elif header == 'SC':
-					if not self.connecting:
-						continue
-					del network[0]
-					del network[len(network)-1]
-					gotChars = True
-					charlist = [ [char.split('&')[0], -1, "male"] for char in network ]
-					self.connectprogress.setText('Requesting music list (%d)...' % maxmusic)
-					self.tcp.send('RM#%')
-					print '[client]', 'received characters (%d)' % len(charlist)
-					
-				elif header == 'SM':
-					if not self.connecting:
-						continue
-					del network[0]
-					del network[len(network)-1]
-					
-					musiclist = [music for music in network]
-					
-					self.connectprogress.setText('Finishing...')
-					self.tcp.send('RD#%')
-					print '[client]', 'received songs (%d)' % len(musiclist)
-					
-				elif header == 'CharsCheck':
-					if not self.connecting or not gotChars:
-						continue
-					network.pop(0)
-					network.pop(len(network)-1)
-					for i in range(len(network)):
-						charlist[i][1] = int(network[i])
-
-				elif header == 'BN':
-					if not self.connecting:
-						continue
-					background = network[1]
-					print '[client]', 'courtroom background: %s' % background
-					
-				elif header == 'LE':
-					if not self.connecting:
-						continue
-					del network[0]
-					del network[len(network)-1]
-					if len(network) > 0:
-						if "<and>" in network[0]: #The Next Chapter actually does this sorcery...
-							evidence = [evi.split("<and>") for evi in network]
-						else:
-							evidence = [evi.split("&") for evi in network]
-					else:
-						evidence = []
-					
-					for evi in evidence:
-						evi[0] = evi[0].decode("utf-8")
-						evi[1] = evi[1].decode("utf-8")
-						evi[2] = evi[2].decode("utf-8")
-					print '[client]', 'received evidence'
-				
-				elif header == 'HP':
-					if not self.connecting:
-						continue
-					del network[0]
-					del network[len(network)-1]
-					type = int(network[0])
-					health = int(network[1])
-					hplist.append([type, health])
-				
-				elif header == "ARUP": #AO2 2.6 new feature: area update
-					del network[0]
-					del network[len(network)-1]
-					type = int(network[0])
-					if type == 0: #player count
-						areas[type] = [network[i] for i in range(1, len(network))]
-					else: #area status, casemakers or locked area
-						areas[type] = [network[i] for i in range(1, len(network))]
-					
-				elif header == 'DONE':
-					if not self.connecting:
-						continue
-					self.connectprogress.setText('Done, loading...')
-					self.connectcancel.hide()
-					print '[client]', 'finished requesting data, loading game...'
-					readytick = 4
-					
-				elif header == 'CT':
-					if not self.connecting:
-						continue
-					del network[0]
-					del network[len(network)-1]
-					name = network[0].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
-					chatmsg = network[1].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
-					self.joinooc.append("%s: %s" % (name, chatmsg))
+				self.aoserverinfo.stop()
+				self.aoserverinfo.start()
 
 	def move_to_game(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[]):
 		self.gamewindow.showGame(tcp, charlist, musiclist, background, evidence, areas, features, oocjoin, hplist)
@@ -517,19 +332,28 @@ class lobby(QtGui.QWidget):
 	def newOOCMessage(self, name, text):
 		self.lobbychatlog.append('%s: %s' % (name, text))
 
-	def connect_to_ms(self):
+
+class MasterServer(QtCore.QThread):
+	gotServers = QtCore.pyqtSignal(list)
+	gotOOCMsg = QtCore.pyqtSignal(str, str)
+	msgbox_signal = QtCore.pyqtSignal(int, str, str)
+
+	def __init__(self):
+		super(MasterServer, self).__init__()
+
+	def run(self):
 		tempdata = ""
 		self.ms_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
 			self.ms_tcp.connect(('master.aceattorneyonline.com', 27016))
 		except:
-			thread.exit()
+			return
 
 		while True:
 			contents = self.ms_tcp.recv(16384)
 			if len(contents) == 0:
 				print 'masterserver failure'
-				thread.exit()
+				return
 			
 			if not contents.endswith("%"):
 				tempdata += contents
@@ -552,7 +376,7 @@ class lobby(QtGui.QWidget):
 					print 'banned from masterserver'
 					self.msgbox_signal.emit(0, "WHEEZE", "You are exiled from AO")
 					self.ms_tcp.close()
-					thread.exit()
+					return
 					
 				elif header == 'ALL':
 					self.gotServers.emit(network)
@@ -562,6 +386,222 @@ class lobby(QtGui.QWidget):
 					chatmsg = network[2].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					self.gotOOCMsg.emit(name, chatmsg)
 
+class AOServerInfo(QtCore.QThread):
+	moveToGameSignal = QtCore.pyqtSignal(list)
+	msgbox_signal = QtCore.pyqtSignal(int, str, str)
+	setOnlinePlayers = QtCore.pyqtSignal(str)
+	setConnectProgress = QtCore.pyqtSignal(str)
+	returnToLobby = QtCore.pyqtSignal()
+	readySoon = QtCore.pyqtSignal()
+	setWindowTitle = QtCore.pyqtSignal(str)
+	canConnect = QtCore.pyqtSignal()
 
-class ServerInfo(threading.Thread):
-    pass
+	def __init__(self):
+		super(AOServerInfo, self).__init__()
+		self.ip = ""
+		self.port = 0
+		self.name = "jm"
+		self.disconnect = False
+
+	def setIP(self, name, ip, port):
+		self.ip = ip
+		self.port = int(port)
+		self.name = name
+
+	def stop(self):
+		self.disconnect = True
+		if self.isRunning():
+			self.terminate()
+			self.wait()
+
+	def run(self):
+		self.disconnect = False
+		self.tcp = socket.socket()
+		try:
+			self.tcp.connect((self.ip, self.port))
+		except:
+			self.setOnlinePlayers.emit("couldn't retrieve players")
+			return
+		self.tcp.settimeout(0.2)
+
+		tempdata = ""
+		gotChars = False
+		hplist = []
+		joinooc = []
+		areas = [[], [], [], []]
+		features = []
+		pingtimer = 150
+		readytick = -1
+
+		while True:
+			if self.disconnect:
+				try: self.tcp.close()
+				except: pass
+				return
+
+			pingtimer -= 1
+			if pingtimer == 0:
+				pingtimer = 150
+				self.tcp.send('CH#%')
+			
+			if readytick > -1:
+				readytick -= 1
+				if readytick == 0:
+					readytick = -1
+					try:
+						self.moveToGameSignal.emit([self.tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist])
+					except Exception as err:
+						self.msgbox_signal.emit(0, "Error caught while loading", traceback.format_exc(err))
+						self.returnToLobby.emit()
+						return
+					
+					self.setWindowTitle.emit(self.name)
+					return
+					
+			try:
+				contents = self.tcp.recv(16384)
+			except (socket.timeout, socket.error) as err:
+				error = err.args[0]
+				if error == "timed out" or error == 10035:
+					continue
+				else:
+					self.setOnlinePlayers.emit("Something wrong happened" if not got_stuff else "Connection lost")
+					return
+
+			if not contents.endswith("%"):
+				tempdata += contents
+				continue
+			else:
+				if tempdata:
+					contents = tempdata + contents
+					tempdata = ""
+
+			totals = contents.split('%')
+			for g in totals:
+				network = g.split('#')
+				header = network[0]
+				
+				if header == 'PN':
+					players = int(network[1])
+					maxplayers = int(network[2])
+					self.canConnect.emit()
+					self.setOnlinePlayers.emit('%d/%d players online' % (players, maxplayers))
+					got_stuff = True
+				
+				elif header == "decryptor":
+					self.tcp.send("HI#AO2XP %s#%%" % hardware.get_hdid())
+				
+				elif header == "ID":
+					self.tcp.send("ID#AO2#69.1337.420#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
+					
+				elif header == "FL":
+					features = network[1:]
+					print features
+				
+				elif header == 'BD':
+					reason = network[1].decode("utf-8") if len(network) > 1 else "Failed to receive ban reason (old server version?)" # new in AO2 2.6
+					self.setOnlinePlayers.emit('Banned')
+					self.msgbox_signal.emit(0, "Banned", "Reason:\n"+reason)
+					self.tcp.close()
+					return
+					
+				elif header == 'SI':
+					if self.disconnect:
+						continue
+					maxchars = int(network[1])
+					maxevidence = int(network[2])
+					maxmusic = int(network[3])
+					self.setConnectProgress.emit('Requesting character list (%d)...' % maxchars)
+					self.tcp.send('RC#%')
+					print '[client]', '%d characters, %d pieces of evidence and %d songs' % (maxchars, maxevidence, maxmusic)
+					
+				elif header == 'SC':
+					if self.disconnect:
+						continue
+					del network[0]
+					del network[len(network)-1]
+					gotChars = True
+					charlist = [ [char.split('&')[0], -1, "male"] for char in network ]
+					self.setConnectProgress.emit('Requesting music list (%d)...' % maxmusic)
+					self.tcp.send('RM#%')
+					print '[client]', 'received characters (%d)' % len(charlist)
+					
+				elif header == 'SM':
+					if self.disconnect:
+						continue
+					del network[0]
+					del network[len(network)-1]
+					
+					musiclist = [music for music in network]
+					
+					self.setConnectProgress.emit('Finishing...')
+					self.tcp.send('RD#%')
+					print '[client]', 'received songs (%d)' % len(musiclist)
+					
+				elif header == 'CharsCheck':
+					if self.disconnect or not gotChars:
+						continue
+					network.pop(0)
+					network.pop(len(network)-1)
+					for i in range(len(network)):
+						charlist[i][1] = int(network[i])
+
+				elif header == 'BN':
+					if self.disconnect:
+						continue
+					background = network[1]
+					print '[client]', 'courtroom background: %s' % background
+					
+				elif header == 'LE':
+					if self.disconnect:
+						continue
+					del network[0]
+					del network[len(network)-1]
+					if len(network) > 0:
+						if "<and>" in network[0]: #The Next Chapter actually does this sorcery...
+							evidence = [evi.split("<and>") for evi in network]
+						else:
+							evidence = [evi.split("&") for evi in network]
+					else:
+						evidence = []
+					
+					for evi in evidence:
+						evi[0] = evi[0].decode("utf-8")
+						evi[1] = evi[1].decode("utf-8")
+						evi[2] = evi[2].decode("utf-8")
+					print '[client]', 'received evidence'
+				
+				elif header == 'HP':
+					if self.disconnect:
+						continue
+					del network[0]
+					del network[len(network)-1]
+					type = int(network[0])
+					health = int(network[1])
+					hplist.append([type, health])
+				
+				elif header == "ARUP": #AO2 2.6 new feature: area update
+					del network[0]
+					del network[len(network)-1]
+					type = int(network[0])
+					if type == 0: #player count
+						areas[type] = [network[i] for i in range(1, len(network))]
+					else: #area status, casemakers or locked area
+						areas[type] = [network[i] for i in range(1, len(network))]
+					
+				elif header == 'DONE':
+					if self.disconnect:
+						continue
+					self.setConnectProgress.emit('Done, loading...')
+					self.readySoon.emit()
+					print '[client]', 'finished requesting data, loading game...'
+					readytick = 4
+					
+				elif header == 'CT':
+					if self.disconnect:
+						continue
+					del network[0]
+					del network[len(network)-1]
+					name = network[0].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
+					chatmsg = network[1].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
+					joinooc.append("%s: %s" % (name, chatmsg))
