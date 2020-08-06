@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-import socket, thread, time, random, traceback, hardware
+import socket, thread, threading, time, random, traceback, hardware
 from os.path import exists
 
 AOpath = "base/"
@@ -167,7 +167,7 @@ class lobby(QtGui.QWidget):
 		thread.start_new_thread(self.connect_to_ms, ())
 
 	def onGetServers(self, servers):
-		self.serverlist.clear()
+		if self.tab == 0: self.serverlist.clear()
 		self.actual_serverlist = []
 		del servers[0]
 		del servers[-1]
@@ -186,7 +186,7 @@ class lobby(QtGui.QWidget):
 				ip = server[2]
 				port = int(server[3])
 			serveritem = QtGui.QListWidgetItem(name)
-			self.serverlist.addItem(serveritem)
+			if self.tab == 0: self.serverlist.addItem(serveritem)
 			self.actual_serverlist.append((ip, port, name, desc))
 
 	def moveToGame(self, stuff):
@@ -561,3 +561,7 @@ class lobby(QtGui.QWidget):
 					name = network[1].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					chatmsg = network[2].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
 					self.gotOOCMsg.emit(name, chatmsg)
+
+
+class ServerInfo(threading.Thread):
+    pass
