@@ -1852,7 +1852,6 @@ class gui(QtGui.QWidget):
 					elif pair_order == 1: # behind
 						self.sidechar.raise_()
 						self.char.raise_()
-					self.bench.raise_()
 				
 				elif side == "pro":
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
@@ -1874,7 +1873,6 @@ class gui(QtGui.QWidget):
 					elif pair_order == 1: # behind
 						self.sidechar.raise_()
 						self.char.raise_()
-					self.bench.raise_()
 				
 				else:
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
@@ -1893,7 +1891,11 @@ class gui(QtGui.QWidget):
 					elif pair_order == 1: # behind
 						self.sidechar.raise_()
 						self.char.raise_()
-					self.bench.raise_()
+
+				self.bench.raise_()
+				self.chatbox.raise_()
+				self.effectview.raise_()
+				self.objectionview.raise_()
 
 				self.sidechar.set_flipped(self.m_chatmessage[OTHER_FLIP] == "1")
 				self.sidechar.play_idle(self.m_chatmessage[OTHER_NAME], self.m_chatmessage[OTHER_EMOTE])
@@ -1902,7 +1904,7 @@ class gui(QtGui.QWidget):
 				self.sidechar.hide()
 				self.sidechar.move(0, 0)
 
-		if ((emote_mod == 1 or emote_mod == 6) and self.m_chatmessage[PREANIM] != "-") or emote_mod == 2:
+		if (emote_mod == 1 or emote_mod == 6) and self.m_chatmessage[PREANIM] != "-":
 			self.play_preanim(False)
 		elif emote_mod == 0 or emote_mod == 5 or self.m_chatmessage[PREANIM] == "-":
 			if self.m_chatmessage[NO_INTERRUPT] == "0":
