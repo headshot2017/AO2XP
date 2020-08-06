@@ -62,6 +62,12 @@ class Settings(QtGui.QDialog):
 		self.defaultoocname = QtGui.QLineEdit()
 		defaultoocname_layout.addWidget(defaultoocname_label)
 		defaultoocname_layout.addWidget(self.defaultoocname)
+
+		defaultshowname_layout = QtGui.QHBoxLayout()
+		defaultshowname_label = QtGui.QLabel("Default showname")
+		self.defaultshowname = QtGui.QLineEdit()
+		defaultshowname_layout.addWidget(defaultshowname_label)
+		defaultshowname_layout.addWidget(self.defaultshowname)
 		
 		allowdownload = QtGui.QLabel()
 		allowdownload.setText("Automatically download or stream online from WebAO:")
@@ -92,6 +98,7 @@ class Settings(QtGui.QDialog):
 		general_layout.addWidget(self.savetolog_combine, 0, QtCore.Qt.AlignRight)
 		general_layout.addWidget(separators[0])
 		general_layout.addLayout(defaultoocname_layout)
+		general_layout.addLayout(defaultshowname_layout)
 		general_layout.addWidget(separators[1])
 		general_layout.addWidget(allowdownload)
 		general_layout.addLayout(allowdownload_layout)
@@ -144,6 +151,10 @@ class Settings(QtGui.QDialog):
 				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "OOC name").decode("utf-8"))
 			except:
 				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "OOC name"))
+			try:
+				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "Showname").decode("utf-8"))
+			except:
+				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "Showname"))
 			self.allowdownload_chars.setChecked(ini.read_ini_bool(self.inifile, "General", "download characters"))
 			self.allowdownload_sounds.setChecked(ini.read_ini_bool(self.inifile, "General", "download sounds"))
 			self.allowdownload_music.setChecked(ini.read_ini_bool(self.inifile, "General", "download music"))
@@ -154,6 +165,7 @@ class Settings(QtGui.QDialog):
 			self.savetolog.setChecked(False)
 			self.savetolog_combine.setChecked(False)
 			self.defaultoocname.setText("")
+			self.defaultshowname.setText("")
 			self.allowdownload_sounds.setChecked(True)
 			self.allowdownload_music.setChecked(True)
 			self.allowdownload_evidence.setChecked(True)
@@ -181,6 +193,7 @@ class Settings(QtGui.QDialog):
 		self.inifile.set("General", "save logs", self.savetolog.isChecked())
 		self.inifile.set("General", "combined logs", self.savetolog_combine.isChecked())
 		self.inifile.set("General", "OOC name", self.defaultoocname.text().toUtf8())
+		self.inifile.set("General", "Showname", self.defaultshowname.text().toUtf8())
 		self.inifile.set("General", "download characters", self.allowdownload_chars.isChecked())
 		self.inifile.set("General", "download sounds", self.allowdownload_sounds.isChecked())
 		self.inifile.set("General", "download music", self.allowdownload_music.isChecked())

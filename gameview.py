@@ -107,18 +107,24 @@ def get_text_color(textcolor):
 	return QtGui.QColor(0, 0, 0)
 
 def download_thread(link, savepath):
-	global DOWNLOAD_BLACKLIST
-	if link in DOWNLOAD_BLACKLIST:
-		return
-	
-	print link, savepath
-	fp = urllib.urlopen(link)
-	if fp.getcode() != 200:
-		DOWNLOAD_BLACKLIST.append(link)
-		print "HTTP error %d while downloading %s" % (fp.getcode(), link)
-	else:
-		with open(savepath, "wb") as f:
-			f.write(fp.read())
+    global DOWNLOAD_BLACKLIST
+    if link in DOWNLOAD_BLACKLIST:
+        return
+
+    buckets = ["http://ao-nonfree.b-cdn.net/"]
+    for bucket in buckets:
+        i = buckets.index(bucket)
+
+        print "download missing: %s" % link
+        fp = urllib.urlopen(bucket+link)
+        if fp.getcode() == 200:
+            with open(savepath, "wb") as f:
+                f.write(fp.read())
+            print "successfully downloaded:", link
+            return
+
+    DOWNLOAD_BLACKLIST.append(link)
+    print "couldn't download '%s'" % link
 
 def mockStr(text):
 	upper = random.choice([True, False])
@@ -242,7 +248,7 @@ class AOCharMovie(QtGui.QLabel):
 			self.use_pillow = 1
 		else:
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-				url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
+				url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
 				url = url.replace(" ", "%20")
 				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 					os.mkdir(AOpath+"characters/"+p_char)
@@ -253,7 +259,7 @@ class AOCharMovie(QtGui.QLabel):
 				self.use_pillow = 2
 			else:
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-					url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
+					url = "base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
 					url = url.replace(" ", "%20")
 					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 						os.mkdir(AOpath+"characters/"+p_char)
@@ -264,7 +270,7 @@ class AOCharMovie(QtGui.QLabel):
 					self.use_pillow = 0
 				else:
 					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-						url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
+						url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
 						url = url.replace(" ", "%20")
 						if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 							os.mkdir(AOpath+"characters/"+p_char)
@@ -275,7 +281,7 @@ class AOCharMovie(QtGui.QLabel):
 						self.use_pillow = 0
 					else:
 						if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
-							url = "http://s3.wasabisys.com/webao/base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
+							url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
 							url = url.replace(" ", "%20")
 							if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
 								os.mkdir(AOpath+"characters/"+p_char)
@@ -457,9 +463,9 @@ class AOMovie(QtGui.QLabel):
 		
 		if not exists(gif_path):
 			pathlist = [
+				get_img_suffix("base/misc/default/"+p_image+"_bubble"),
 				get_img_suffix("base/characters/"+p_char+"/"+p_image),
 				get_img_suffix("base/misc/default/"+p_image),
-				get_img_suffix("base/misc/default/"+p_image+"_bubble"),
 				get_img_suffix("base/themes/default/"+p_image),
 				"base/themes/default/placeholder.gif"
 				]
@@ -1122,7 +1128,7 @@ class gui(QtGui.QWidget):
 		else:
 			guiobj.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/evidence_selected.png'))
 			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download evidence"):
-				url = "http://s3.wasabisys.com/webao/base/evidence/"+image.lower()
+				url = "base/evidence/"+image.lower()
 				url = url.replace("evidence/../", "")
 				path = AOpath+"evidence/"+image
 				path = path.replace("evidence/../", "")
@@ -2271,16 +2277,8 @@ class gui(QtGui.QWidget):
 			if BASS_ChannelIsActive(self.objectsnd):
 				BASS_ChannelStop(self.objectsnd)
 			BASS_StreamFree(self.objectsnd)
-		
-		objecting = ''
-		if objection == 1:
-			objecting = 'holdit'
-		elif objection == 2:
-			objecting = 'objection'
-		elif objection == 3:
-			objecting = 'takethat'
-		elif objection == 4:
-			objecting = 'custom'
+
+		objecting = ["holdit", "objection", "takethat", "custom"][objection-1]
 		
 		if objecting:
 			if exists(AOpath + 'characters/' + charname + '/' + objecting + '.wav'):
@@ -2292,8 +2290,8 @@ class gui(QtGui.QWidget):
 				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download sounds"):
 					if not exists(AOpath+"characters/"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
 						os.mkdir(AOpath+"characters/"+charname.lower())
-					thread.start_new_thread(download_thread, ("http://s3.wasabisys.com/webao/base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
-				
+					thread.start_new_thread(download_thread, ("base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
+
 				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-objection.wav', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.objectsnd, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.objectsnd, True)
@@ -2366,6 +2364,7 @@ class gui(QtGui.QWidget):
 		self.charselect.show()
 		
 		self.oocnameinput.setText(ini.read_ini(AOpath+"AO2XP.ini", "General", "OOC name"))
+		self.shownameedit.setText(ini.read_ini(AOpath+"AO2XP.ini", "General", "Showname"))
 		
 		self.pairdropdown.clear()
 		self.paircheckbox.setChecked(False)
