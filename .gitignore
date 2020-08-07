@@ -8,3 +8,4 @@ bass*.dll
 PyQt4-4.11.4-cp27-cp27m-win32.whl
 *.pyc
 *.zip
+*.ini
