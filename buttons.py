@@ -2,6 +2,7 @@ from PyQt4 import QtCore, QtGui
 import os
 
 AOpath = "base/"
+AO2XPpath = "base/"
 #AOpath = "I:/aovanilla1.7.5/client/base/"
 
 class AOToggleButton(QtGui.QLabel):
@@ -11,8 +12,8 @@ class AOToggleButton(QtGui.QLabel):
 	def __init__(self, parent, x, y, btnname):
 		super(AOToggleButton, self).__init__(parent)
 		self.parent = parent
-		self.notpressed_pix = QtGui.QPixmap(AOpath+"themes/default/%s.png" % btnname)
-		self.pressed_pix = QtGui.QPixmap(AOpath+"themes/default/%s_pressed.png" % btnname)
+		self.notpressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/%s.png" % btnname)
+		self.pressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/%s_pressed.png" % btnname)
 		self.setPixmap(self.notpressed_pix)
 		self.setGeometry(x, y, self.notpressed_pix.size().width(), self.notpressed_pix.size().height())
 		self.show()
@@ -34,8 +35,8 @@ class CustomObjection(QtGui.QLabel):
 		super(CustomObjection, self).__init__(parent)
 		self.parent = parent
 		self.setGeometry(x, y, 76, 28)
-		self.notpressed_pix = QtGui.QPixmap(AOpath+"themes/default/custom.png")
-		self.pressed_pix = QtGui.QPixmap(AOpath+"themes/default/custom_selected.png")
+		self.notpressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/custom.png")
+		self.pressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/custom_selected.png")
 		self.setPixmap(self.notpressed_pix)
 		self.show()
 	
@@ -63,14 +64,14 @@ class WTCEbuttons(QtGui.QLabel):
 		super(WTCEbuttons, self).__init__(parent)
 		self.setGeometry(x, y, 85, 42)
 		if type == 0:
-			self.setPixmap(QtGui.QPixmap(AOpath+"themes/default/witnesstestimony.png"))
+			self.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/witnesstestimony.png"))
 		elif type == 1:
-			self.setPixmap(QtGui.QPixmap(AOpath+"themes/default/crossexamination.png"))
+			self.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/crossexamination.png"))
 		elif type == 2:
 			if variant == 0:
-				self.setPixmap(QtGui.QPixmap(AOpath+"themes/default/notguilty.png"))
+				self.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/notguilty.png"))
 			elif variant == 1:
-				self.setPixmap(QtGui.QPixmap(AOpath+"themes/default/guilty.png"))
+				self.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/guilty.png"))
 		self.type = type
 		self.variant = variant
 	
@@ -86,14 +87,14 @@ class Objections(QtGui.QLabel):
 		self.type = type
 		self.setGeometry(x, y, 76, 28)
 		if type == 1:
-			self.notpressed_pix = QtGui.QPixmap(AOpath+"themes/default/holdit.png")
-			self.pressed_pix = QtGui.QPixmap(AOpath+"themes/default/holdit_selected.png")
+			self.notpressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/holdit.png")
+			self.pressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/holdit_selected.png")
 		elif type == 2:
-			self.notpressed_pix = QtGui.QPixmap(AOpath+"themes/default/objection.png")
-			self.pressed_pix = QtGui.QPixmap(AOpath+"themes/default/objection_selected.png")
+			self.notpressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/objection.png")
+			self.pressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/objection_selected.png")
 		elif type == 3:
-			self.notpressed_pix = QtGui.QPixmap(AOpath+"themes/default/takethat.png")
-			self.pressed_pix = QtGui.QPixmap(AOpath+"themes/default/takethat_selected.png")
+			self.notpressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/takethat.png")
+			self.pressed_pix = QtGui.QPixmap(AO2XPpath+"themes/default/takethat_selected.png")
 		self.setPixmap(self.notpressed_pix)
 		self.show()
 	
@@ -162,15 +163,15 @@ class PenaltyBars(QtGui.QLabel):
 		self.resize(84, 14)
 		if type == 1: #defense bar.
 			for i in range(11):
-				self.penaltybars.append(QtGui.QPixmap(AOpath+"themes/default/defensebar"+str(i)+".png"))
+				self.penaltybars.append(QtGui.QPixmap(AO2XPpath+"themes/default/defensebar"+str(i)+".png"))
 			side = "def"
 		elif type == 2: #prosecution bar
 			for i in range(11):
-				self.penaltybars.append(QtGui.QPixmap(AOpath+"themes/default/prosecutionbar"+str(i)+".png"))
+				self.penaltybars.append(QtGui.QPixmap(AO2XPpath+"themes/default/prosecutionbar"+str(i)+".png"))
 			side = "pro"
 		self.side = side
-		self.minusbtn = PixmapButton(parent, QtGui.QPixmap(AOpath+"themes/default/"+side+"minus.png"))
-		self.plusbtn = PixmapButton(parent, QtGui.QPixmap(AOpath+"themes/default/"+side+"plus.png"))
+		self.minusbtn = PixmapButton(parent, QtGui.QPixmap(AO2XPpath+"themes/default/"+side+"minus.png"))
+		self.plusbtn = PixmapButton(parent, QtGui.QPixmap(AO2XPpath+"themes/default/"+side+"plus.png"))
 		self.minusbtn.clicked.connect(self.minusClick)
 		self.plusbtn.clicked.connect(self.plusClick)
 		self.setPixmap(self.penaltybars[10])
@@ -190,8 +191,8 @@ class PenaltyBars(QtGui.QLabel):
 		self.minusClicked.emit(self.type)
 	
 	def setHealth(self, health):
-		self.minusbtn.setPixmap(QtGui.QPixmap(AOpath+"themes/default/"+self.side+"minus.png"))
-		self.plusbtn.setPixmap(QtGui.QPixmap(AOpath+"themes/default/"+self.side+"plus.png"))
+		self.minusbtn.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/"+self.side+"minus.png"))
+		self.plusbtn.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/"+self.side+"plus.png"))
 		self.setPixmap(self.penaltybars[health])
 		self.health = health
 		

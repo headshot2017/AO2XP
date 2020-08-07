@@ -6,6 +6,7 @@ from os import listdir
 import ini
 
 AOpath = "base/"
+AO2XPpath = "AO2XPbase/"
 #AOpath = "I:\\aovanilla1.7.5\\client\\base\\"
 
 class Settings(QtGui.QDialog):
@@ -84,12 +85,12 @@ class Settings(QtGui.QDialog):
 		currtheme_layout = QtGui.QHBoxLayout()
 		currtheme_label = QtGui.QLabel("Current theme")
 		self.currtheme = QtGui.QComboBox()
-		self.themes = listdir(AOpath+"ao2xp_themes")
+		self.themes = listdir(AO2XPpath+"ao2xp_themes")
 		for theme in self.themes:
-                        if exists(AOpath+"ao2xp_themes/"+theme+"/theme.py"):
-                                self.currtheme.addItem(theme)
-                currtheme_layout.addWidget(currtheme_label)
-                currtheme_layout.addWidget(self.currtheme)
+			if exists(AO2XPpath+"ao2xp_themes/"+theme+"/theme.py"):
+				self.currtheme.addItem(theme)
+		currtheme_layout.addWidget(currtheme_label)
+		currtheme_layout.addWidget(self.currtheme)
 		
 		savechangeswarn = QtGui.QLabel()
 		savechangeswarn.setText("* Change takes effect upon restarting the client")
@@ -143,8 +144,8 @@ class Settings(QtGui.QDialog):
 		main_layout.addLayout(save_layout)
 	
 	def showSettings(self):
-		if exists(AOpath+"AO2XP.ini"):
-			self.inifile.read(AOpath+"AO2XP.ini")
+		if exists("AO2XP.ini"):
+			self.inifile.read("AO2XP.ini")
 			self.savetolog.setChecked(ini.read_ini_bool(self.inifile, "General", "save logs"))
 			self.savetolog_combine.setChecked(ini.read_ini_bool(self.inifile, "General", "combined logs"))
 			try:
@@ -173,8 +174,8 @@ class Settings(QtGui.QDialog):
 			self.device_list.setCurrentIndex(BASS_GetDevice())
 		
 		self.callwords_edit.clear()
-		if exists(AOpath+"callwords.ini"):
-			with open(AOpath+"callwords.ini") as f:
+		if exists(AO2XPpath+"callwords.ini"):
+			with open(AO2XPpath+"callwords.ini") as f:
 				for line in f:
 					self.callwords_edit.append(line.rstrip().decode("utf-8"))
 		
@@ -200,7 +201,7 @@ class Settings(QtGui.QDialog):
 		self.inifile.set("General", "download evidence", self.allowdownload_evidence.isChecked())
 		self.inifile.set("General", "theme", self.currtheme.currentText())
 		self.inifile.set("Audio", "device", self.device_list.currentIndex())
-		self.inifile.write(open(AOpath+"AO2XP.ini", "w"))
+		self.inifile.write(open("AO2XP.ini", "w"))
 		
 		with open(AOpath+"callwords.ini", "w") as f:
 			f.write(self.callwords_edit.toPlainText().toUtf8())

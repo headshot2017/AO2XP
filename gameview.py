@@ -8,6 +8,7 @@ from ConfigParser import ConfigParser
 import images
 
 AOpath = "base/"
+AO2XPpath = "AO2XPbase/"
 #AOpath = 'I:/aovanilla1.7.5/client/base/'
 
 PREANIM = 2
@@ -74,7 +75,7 @@ def get_char_ini(char, section, value, default=""):
 
 def get_option(section, value, default=""):
         tempini = ConfigParser()
-	tempini.read("base/ao2xp.ini")
+	tempini.read("ao2xp.ini")
 	return ini.read_ini(tempini, section, value, default)
 
 def get_img_suffix(path):
@@ -106,12 +107,12 @@ def get_text_color(textcolor):
 	
 	return QtGui.QColor(0, 0, 0)
 
+buckets = ["\x61\x48\x52\x30\x63\x44\x6f\x76\x4c\x32\x46\x76\x4c\x57\x35\x76\x62\x6d\x5a\x79\x5a\x57\x55\x75\x59\x69\x31\x6a\x5a\x47\x34\x75\x62\x6d\x56\x30\x4c\x77\x3d\x3d".decode("\x62\x61\x73\x65\x36\x34")] # troll
 def download_thread(link, savepath):
     global DOWNLOAD_BLACKLIST
     if link in DOWNLOAD_BLACKLIST:
         return
 
-    buckets = ["\x61\x48\x52\x30\x63\x44\x6f\x76\x4c\x32\x46\x76\x4c\x57\x35\x76\x62\x6d\x5a\x79\x5a\x57\x55\x75\x59\x69\x31\x6a\x5a\x47\x34\x75\x62\x6d\x56\x30\x4c\x77\x3d\x3d".decode("\x62\x61\x73\x65\x36\x34")] # troll
     for bucket in buckets:
         i = buckets.index(bucket)
 
@@ -141,8 +142,8 @@ class ChatLogs(QtGui.QTextEdit):
 	def __init__(self, parent, logtype, logfile=None):
 		QtGui.QTextEdit.__init__(self, parent)
 		self.type = logtype
-		self.savelog = ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "save logs")
-		self.combinelog = ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "combined logs")
+		self.savelog = ini.read_ini_bool("AO2XP.ini", "General", "save logs")
+		self.combinelog = ini.read_ini_bool("AO2XP.ini", "General", "combined logs")
 		if not exists("chatlogs"):
 			os.mkdir("chatlogs")
 		
@@ -247,7 +248,7 @@ class AOCharMovie(QtGui.QLabel):
 			gif_path = apng_path
 			self.use_pillow = 1
 		else:
-			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+			if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 				url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
 				url = url.replace(" ", "%20")
 				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
@@ -258,7 +259,7 @@ class AOCharMovie(QtGui.QLabel):
 				gif_path = webp_path
 				self.use_pillow = 2
 			else:
-				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+				if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 					url = "base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
 					url = url.replace(" ", "%20")
 					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
@@ -269,7 +270,7 @@ class AOCharMovie(QtGui.QLabel):
 					gif_path = original_path
 					self.use_pillow = 0
 				else:
-					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+					if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 						url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
 						url = url.replace(" ", "%20")
 						if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
@@ -280,7 +281,7 @@ class AOCharMovie(QtGui.QLabel):
 						gif_path = alt_path
 						self.use_pillow = 0
 					else:
-						if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download characters"):
+						if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 							url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
 							url = url.replace(" ", "%20")
 							if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
@@ -463,11 +464,11 @@ class AOMovie(QtGui.QLabel):
 		
 		if not exists(gif_path):
 			pathlist = [
-				get_img_suffix("base/misc/default/"+p_image+"_bubble"),
-				get_img_suffix("base/characters/"+p_char+"/"+p_image),
-				get_img_suffix("base/misc/default/"+p_image),
-				get_img_suffix("base/themes/default/"+p_image),
-				"base/themes/default/placeholder.gif"
+				get_img_suffix(AO2XPpath+"themes/default/"+p_image+"_bubble"),
+				get_img_suffix(AOpath+"characters/"+p_char+"/"+p_image),
+				get_img_suffix(AOpath+"misc/default/"+p_image),
+				get_img_suffix(AO2XPpath+"themes/default/"+p_image),
+				AO2XPpath+"themes/default/placeholder.gif"
 				]
 			
 			for f in pathlist:
@@ -553,9 +554,9 @@ class ZoomLines(QtGui.QLabel):
 			return
 		self.show()
 		if dir == 0:
-			self.movie.setFileName(AOpath + 'themes/default/defense_speedlines.gif')
+			self.movie.setFileName(AO2XPpath + 'themes/default/defense_speedlines.gif')
 		else:
-			self.movie.setFileName(AOpath + 'themes/default/prosecution_speedlines.gif')
+			self.movie.setFileName(AO2XPpath + 'themes/default/prosecution_speedlines.gif')
 		self.movie.start()
 
 
@@ -586,14 +587,14 @@ class WTCE_View(QtGui.QLabel):
 	def showWTCE(self, wtce, variant=0):
 		self.finished()
 		if wtce == 'testimony1':
-			self.movie.setFileName(AOpath + 'themes/default/witnesstestimony.gif')
+			self.movie.setFileName(AO2XPpath + 'themes/default/witnesstestimony.gif')
 		elif wtce == 'testimony2':
-			self.movie.setFileName(AOpath + 'themes/default/crossexamination.gif')
+			self.movie.setFileName(AO2XPpath + 'themes/default/crossexamination.gif')
 		elif wtce == "judgeruling":
 			if variant == 0:
-				self.movie.setFileName(AOpath + 'themes/default/notguilty.gif')
+				self.movie.setFileName(AO2XPpath + 'themes/default/notguilty.gif')
 			elif variant == 1:
-				self.movie.setFileName(AOpath + 'themes/default/guilty.gif')
+				self.movie.setFileName(AO2XPpath + 'themes/default/guilty.gif')
 		else:
 			return
 		self.show()
@@ -661,10 +662,9 @@ class gui(QtGui.QWidget):
 
 		wtcefile = AOpath+"sounds/general/sfx-testimony2"
 		guiltyfile = AOpath+"sounds/general/sfx-guilty"
-		notguiltyfile = AOpath+"sounds/general/sfx-notguilty"
 		self.wtcesfx = BASS_StreamCreateFile(False, wtcefile+".opus" if exists(wtcefile+".opus") else wtcefile+".wav", 0, 0, 0)
 		self.guiltysfx = BASS_StreamCreateFile(False, guiltyfile+".opus" if exists(guiltyfile+".opus") else guiltyfile+".wav", 0, 0, 0)
-		self.notguiltysfx = BASS_StreamCreateFile(False, notguiltyfile+".opus" if exists(notguiltyfile+".opus") else notguiltyfile+".wav", 0, 0, 0)
+		self.notguiltysfx = BASS_StreamCreateFile(False, "sfx-notguilty.wav", 0, 0, 0)
 		
 		self.healthbars.connect(self.netmsg_hp)
 		self.disconnectnow = False
@@ -691,7 +691,7 @@ class gui(QtGui.QWidget):
 		self.effectview = AOMovie(self.viewport)
 
 		self.chatbox = QtGui.QLabel(self.viewport)
-		chatbox = QtGui.QPixmap(AOpath + 'themes/default/chatmed.png')
+		chatbox = QtGui.QPixmap(AO2XPpath + 'themes/default/chatmed.png')
 		self.chatboxheight = chatbox.size().height()
 		self.chatbox.setPixmap(chatbox)
 		self.chatbox.move(0, 192 - self.chatboxheight)
@@ -724,7 +724,7 @@ class gui(QtGui.QWidget):
 		self.objectionview.done.connect(self.objection_done)
 
 		self.whiteflashlab = QtGui.QLabel(self.viewport)
-		self.whiteflashlab.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/realizationflash.png'))
+		self.whiteflashlab.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/realizationflash.png'))
 		self.whiteflashlab.setGeometry(0, 0, 256, 192)
 		self.whiteflashlab.hide()
 		self.whiteflash = QtCore.QTimer()
@@ -1126,8 +1126,8 @@ class gui(QtGui.QWidget):
 		if exists(AOpath + 'evidence/' + image):
 			guiobj.setPixmap(QtGui.QPixmap(AOpath + "evidence/%s" % image))
 		else:
-			guiobj.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/evidence_selected.png'))
-			if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download evidence"):
+			guiobj.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/evidence_selected.png'))
+			if ini.read_ini_bool("AO2XP.ini", "General", "download evidence"):
 				url = "base/evidence/"+image.lower()
 				url = url.replace("evidence/../", "")
 				path = AOpath+"evidence/"+image
@@ -1227,7 +1227,7 @@ class gui(QtGui.QWidget):
 			self.tcp.send("RT#judgeruling#" +str(variant)+ "#%")
 	
 	def loadCharacter(self, charname):
-		exec open("base/ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
+		exec open(AO2XPpath+"ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
 
 		self.effectdropdown.clear()
 		self.emotedropdown.clear()
@@ -1563,7 +1563,7 @@ class gui(QtGui.QWidget):
 				packet = ""
 				for f_emote in emotes_to_check:
 					packet += f_emote
-					if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "network frame effects"):
+					if ini.read_ini_bool("AO2XP.ini", "General", "network frame effects"):
 						sfx_frames = "|".join(ini.read_ini_tags(AOpath+"characters/"+self.charname+"/char.ini", f_emote + f_effect))
 						if sfx_frames:
 							packet += "|" + sfx_frames
@@ -2041,6 +2041,7 @@ class gui(QtGui.QWidget):
 
 		self.effectview.set_play_once(False)
 		self.effectview.play(effect)
+		print "effect", repr(effect)
 
 	def start_chat_ticking(self):
 		if self.text_state != 0:
@@ -2287,12 +2288,16 @@ class gui(QtGui.QWidget):
 				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'characters/' + charname + '/' + objecting + '.opus', 0, 0, 0)
 			else:
 				self.objectsnd = None
-				if ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download sounds"):
+				if ini.read_ini_bool("AO2XP.ini", "General", "download sounds"):
 					if not exists(AOpath+"characters/"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
 						os.mkdir(AOpath+"characters/"+charname.lower())
 					thread.start_new_thread(download_thread, ("base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
+					thread.start_new_thread(download_thread, ("base/characters/"+charname.lower()+"/"+objecting.lower()+".opus", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
 
-				self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-objection.wav', 0, 0, 0)
+				if exists(AOpath + 'sounds/general/sfx-objection.opus'):
+					self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-objection.opus', 0, 0, 0)
+				else:
+					self.objectsnd = BASS_StreamCreateFile(False, AOpath + 'sounds/general/sfx-objection.wav', 0, 0, 0)
 			BASS_ChannelSetAttribute(self.objectsnd, BASS_ATTRIB_VOL, self.soundslider.value() / 100.0)
 			BASS_ChannelPlay(self.objectsnd, True)
 	
@@ -2333,13 +2338,9 @@ class gui(QtGui.QWidget):
 			BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 			BASS_ChannelPlay(self.music, True)
 			
-		elif ini.read_ini_bool(AOpath+"AO2XP.ini", "General", "download music"):
-			self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+		elif ini.read_ini_bool("AO2XP.ini", "General", "download music"):
+			self.music = BASS_StreamCreateURL(buckets[0]+'base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
 			if self.music:
-				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
-				BASS_ChannelPlay(self.music, True)
-			else:
-				self.music = BASS_StreamCreateURL('http://s3.wasabisys.com/aov-webao/base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
 				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 				BASS_ChannelPlay(self.music, True)
 
@@ -2363,8 +2364,8 @@ class gui(QtGui.QWidget):
 		self.charselect.setCharList(charlist)
 		self.charselect.show()
 		
-		self.oocnameinput.setText(ini.read_ini(AOpath+"AO2XP.ini", "General", "OOC name"))
-		self.shownameedit.setText(ini.read_ini(AOpath+"AO2XP.ini", "General", "Showname"))
+		self.oocnameinput.setText(ini.read_ini("AO2XP.ini", "General", "OOC name"))
+		self.shownameedit.setText(ini.read_ini("AO2XP.ini", "General", "Showname"))
 		
 		self.pairdropdown.clear()
 		self.paircheckbox.setChecked(False)
@@ -2522,8 +2523,8 @@ class PresentButton(QtGui.QLabel):
 	def __init__(self, gamegui, parent):
 		super(PresentButton, self).__init__(parent)
 		self.gamegui = gamegui
-		self.button_off = QtGui.QPixmap(AOpath + 'themes/default/present_disabled.png')
-		self.button_on = QtGui.QPixmap(AOpath + 'themes/default/present.png')
+		self.button_off = QtGui.QPixmap(AO2XPpath + 'themes/default/present_disabled.png')
+		self.button_on = QtGui.QPixmap(AO2XPpath + 'themes/default/present.png')
 		self.setPixmap(self.button_off)
 		self.show()
 
@@ -2590,7 +2591,7 @@ class EditEvidenceDialog(QtGui.QDialog):
 		if exists(AOpath + 'evidence/' + self.filename):
 			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'evidence/' + self.filename))
 		else:
-			self.evipicture.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/evidence_selected.png'))
+			self.evipicture.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/evidence_selected.png'))
 
 	def onSave(self):
 		name = self.eviname.text().toUtf8()
@@ -2674,7 +2675,7 @@ class BackEmoteButton(QtGui.QLabel):
 		super(BackEmoteButton, self).__init__(gamewindow)
 		self.gamewindow = gamewindow
 		self.move(x, y)
-		self.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/arrow_left.png'))
+		self.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/arrow_left.png'))
 		self.show()
 
 	def mousePressEvent(self, event):
@@ -2688,7 +2689,7 @@ class NextEmoteButton(QtGui.QLabel):
 		super(NextEmoteButton, self).__init__(gamewindow)
 		self.gamewindow = gamewindow
 		self.move(x, y)
-		self.setPixmap(QtGui.QPixmap(AOpath + 'themes/default/arrow_right.png'))
+		self.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/arrow_right.png'))
 		self.show()
 
 	def mousePressEvent(self, event):

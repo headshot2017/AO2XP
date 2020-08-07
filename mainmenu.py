@@ -4,6 +4,7 @@ import socket, thread, time, random, traceback, hardware
 from os.path import exists
 
 AOpath = "base/"
+AO2XPpath = "AO2XPbase/"
 #AOpath = "I:/aovanilla1.7.5/client/base/"
 
 class PicButton(QtGui.QAbstractButton):
@@ -30,19 +31,19 @@ class lobby(QtGui.QWidget):
 		self.can_connect = False
 		self.svclicked = None
 		self.gamewindow = parent
-		self.pix_lobby = QtGui.QPixmap(AOpath+'themes/default/lobbybackground.png')
-		self.pix_btn_public = QtGui.QPixmap(AOpath+'themes/default/publicservers.png')
-		self.pix_btn_favs = QtGui.QPixmap(AOpath+'themes/default/favorites.png')
-		self.pix_btn_refresh = QtGui.QPixmap(AOpath+'themes/default/refresh.png')
-		self.pix_btn_addfav = QtGui.QPixmap(AOpath+'themes/default/addtofav.png')
-		self.pix_btn_connect = QtGui.QPixmap(AOpath+'themes/default/connect.png')
-		self.pix_connecting = QtGui.QPixmap(AOpath+'themes/default/loadingbackground.png')
+		self.pix_lobby = QtGui.QPixmap(AO2XPpath+'themes/default/lobbybackground.png')
+		self.pix_btn_public = QtGui.QPixmap(AO2XPpath+'themes/default/publicservers.png')
+		self.pix_btn_favs = QtGui.QPixmap(AO2XPpath+'themes/default/favorites.png')
+		self.pix_btn_refresh = QtGui.QPixmap(AO2XPpath+'themes/default/refresh.png')
+		self.pix_btn_addfav = QtGui.QPixmap(AO2XPpath+'themes/default/addtofav.png')
+		self.pix_btn_connect = QtGui.QPixmap(AO2XPpath+'themes/default/connect.png')
+		self.pix_connecting = QtGui.QPixmap(AO2XPpath+'themes/default/loadingbackground.png')
 		
 		if exists(AOpath+'serverlist.txt'):
 			with open(AOpath+'serverlist.txt') as file:
 				self.favoriteslist = [line.rstrip().split(':') for line in file]
 		else:
-			self.favoriteslist = ['127.0.0.1:27017:your server (port 27017)'.split(':'), '0.0.0.0:27017:serverlist.txt not found on base folder'.split(':')]
+			self.favoriteslist = ['127.0.0.1:27017:your server (port 27017)'.split(':'), '127.0.0.1:27016:your server (port 27016)'.split(':'),]
 			
 		self.lobbyimg = QtGui.QLabel(self)
 		self.lobbyimg.setPixmap(self.pix_lobby)

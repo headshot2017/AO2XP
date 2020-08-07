@@ -5,11 +5,12 @@ from functools import partial
 from buttons import PixmapButton
 
 AOpath = "base/"
+AO2XPpath = "AO2XPbase/"
 #AOpath = "I:/aovanilla1.7.5/client/base/"
 
 def get_option(section, value, default=""):
         tempini = ConfigParser()
-	tempini.read("base/ao2xp.ini")
+	tempini.read("ao2xp.ini")
 	return ini.read_ini(tempini, section, value, default)
 
 class CharIcon(QtGui.QLabel):
@@ -28,7 +29,7 @@ class charselect(QtGui.QWidget):
 		self.parent = parent
 		self.page = 0
 		self.image = QtGui.QLabel(self)
-		self.image.setPixmap(QtGui.QPixmap(AOpath+"themes/default/charselect_background.png"))
+		self.image.setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/charselect_background.png"))
 		self.image.show()
 		
 		self.quittolobby = QtGui.QPushButton(self)
@@ -51,7 +52,7 @@ class charselect(QtGui.QWidget):
 		for i in range(self.max_chars_on_page):
 			self.buttons.append(CharIcon(self, i))
 			self.chartaken.append(QtGui.QLabel(self))
-			self.chartaken[i].setPixmap(QtGui.QPixmap(AOpath+"themes/default/char_taken.png"))
+			self.chartaken[i].setPixmap(QtGui.QPixmap(AO2XPpath+"themes/default/char_taken.png"))
 			self.chartaken[i].hide()
 			
 			x_pos = (btn_width + x_spacing) * x_mod_count
@@ -65,11 +66,11 @@ class charselect(QtGui.QWidget):
 				y_mod_count += 1
 				x_mod_count = 0
 		
-		self.prevpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes/default/arrow_left.png"))
+		self.prevpage = PixmapButton(self, QtGui.QPixmap(AO2XPpath+"themes/default/arrow_left.png"))
 		self.prevpage.move(left - self.prevpage.pixmap.size().width(), top + height)
 		self.prevpage.clicked.connect(self.prevPageButton)
 		self.prevpage.show()
-		self.nextpage = PixmapButton(self, QtGui.QPixmap(AOpath+"themes/default/arrow_right.png"))
+		self.nextpage = PixmapButton(self, QtGui.QPixmap(AO2XPpath+"themes/default/arrow_right.png"))
 		self.nextpage.move(left + width, top + height)
 		self.nextpage.clicked.connect(self.nextPageButton)
 		self.nextpage.show()

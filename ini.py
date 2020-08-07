@@ -98,7 +98,7 @@ def read_ini_tags(file, target_tag):
 def get_effect_sound(fx_name, char):
     p_effect = read_ini("base/characters/"+char+"/char.ini", "options", "effects")
     p_path = "base/misc/"+p_effect+"/effects.ini"
-    default_path = "base/themes/default/effects/effects.ini"
+    default_path = "AO2XPbase/themes/default/effects/effects.ini"
     
     if exists(p_path):
         return read_sectionless_ini(p_path, fx_name)
@@ -123,7 +123,7 @@ def get_effect(effect, char, folder):
     p_effect = folder
     if not p_effect: p_effect = read_ini("base/characters/"+char+"/char.ini", "options", "effects")
     p_path = get_img_suffix("base/misc/"+p_effect+"/"+effect)
-    default_path = get_img_suffix("base/themes/default/effects/"+effect)
+    default_path = get_img_suffix("AO2XPbase/themes/default/effects/"+effect)
 
     if not exists(p_path):
         return default_path

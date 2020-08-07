@@ -1,15 +1,14 @@
-import sys, thread, time, ctypes
+import sys, thread, time
 from os.path import exists
+from PyQt4 import QtGui, QtCore
+app = QtGui.QApplication(sys.argv)
 
 debugmode = len(sys.argv) > 1 and sys.argv[1] == "debug"
 if not debugmode:
-	if not exists("bass.dll"):
-		ctypes.windll.user32.MessageBoxA(0, "couldn't find the file 'bass.dll' on the client folder.\nthis program needs this file in order to play sounds and music.\nthe file is included in this client's zip file, make sure it's in the same folder as the AO2XP.exe", "unable to launch game", 0)
-		sys.exit(1)
-
-from PyQt4 import QtGui, QtCore
-from pybass import *
-import gameview, mainmenu, options, ini
+    fakebass = len(sys.argv) > 1 and sys.argv[1] == "bass"
+    if not exists("bass.dll") or fakebass:
+        QtGui.QMessageBox.critical(None, "Unable to launch game", "Couldn't find the file 'bass.dll' on the client folder.\nAO2XP needs this file in order to play sounds and music.\nThe file is included in the client's zip file, make sure it's in the same folder as AO2XP.exe")
+        sys.exit(2)
 
 class gamewindow(QtGui.QMainWindow):
 	def __init__(self):
@@ -50,13 +49,20 @@ class gamewindow(QtGui.QMainWindow):
 		self.settingsgui.showSettings()
 
 if not debugmode:
-	if not exists("base"):
-		ctypes.windll.user32.MessageBoxA(0, "The 'base' folder appears to be missing.\nDownload the original Attorney Online client below,\nthen extract the 'base' folder from the zip to the AO2XP folder.\n\nhttp://aceattorneyonline.com", "unable to launch game", 0)
-		sys.exit(1)
+    force_downloader = len(sys.argv) > 1 and sys.argv[1] == "download"
+    if force_downloader or (not exists("base/background") and not exists("base/characters") and not exists("base/sounds") and not exists("base/evidence")):
+        jm = QtGui.QMessageBox.information(None, "Warning", "You seem to be missing the included Attorney Online content.\nWould you like to download them automatically?", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if jm == QtGui.QMessageBox.Yes:
+            import basedownloader
+            code = basedownloader.downloadVanilla()
+        else:
+            sys.exit(3)
+
+from pybass import *
+import gameview, mainmenu, options, ini
 
 BASS_Init(ini.read_ini_int("base/AO2XP.ini", "Audio", "device", -1), 44100, 0, 0, 0)
 BASS_PluginLoad("bassopus", 0)
-app = QtGui.QApplication(sys.argv)
 shit = gamewindow()
 shit.show()
 sys.exit(app.exec_())
