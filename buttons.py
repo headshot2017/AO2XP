@@ -2,7 +2,7 @@ from PyQt4 import QtCore, QtGui
 import os
 
 AOpath = "base/"
-AO2XPpath = "base/"
+AO2XPpath = "AO2XPbase/"
 #AOpath = "I:/aovanilla1.7.5/client/base/"
 
 class AOToggleButton(QtGui.QLabel):
