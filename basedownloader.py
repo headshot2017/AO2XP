@@ -1,7 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import json, urllib, sys, requests, time, os, zipfile, sha
 
-returncode = 4
+returncode = -4
 msgbox = ["", "", ""]
 
 def downloadVanilla():
@@ -88,16 +88,16 @@ class downloadThread(QtCore.QThread):
 
         if download_it:
             self.labelText.emit("Downloading version '%s'..." % latest_version)
-            dl = 0
+            dl = resume_bytes
             speed = 0.0
             start = time.clock()
             zip = requests.get(link, stream=True, headers={"Range": "bytes=%d-" % resume_bytes})
-            length = int(zip.headers.get("content-length"))
+            length = resume_bytes + int(zip.headers.get("content-length"))
 
             for noby in zip.iter_content(chunk_size=4096):
                 if not self.jm.isVisible():
                     downloadfile.close()
-                    returncode = 4
+                    returncode = -5
                     return
 
                 downloadfile.write(noby)
