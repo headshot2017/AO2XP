@@ -241,7 +241,7 @@ class AOCharMovie(QtGui.QLabel):
 		alt_path = AOpath+"characters/"+p_char+"/"+p_emote+".png"
 		apng_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".apng"
 		webp_path = AOpath+"characters/"+p_char+"/"+emote_prefix+p_emote+".webp"
-		placeholder_path = AOpath+"themes/default/placeholder.gif"
+		placeholder_path = AO2XPpath+"themes/default/placeholder.gif"
 		gif_path = ""
 		
 		if exists(apng_path):
