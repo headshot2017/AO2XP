@@ -92,7 +92,9 @@ class lobby(QtGui.QWidget):
 		self.serverlist = QtGui.QListWidget(self)
 		self.serverlist.resize(286, 240)
 		self.serverlist.move(20, 125)
-		self.serverlist.setStyleSheet("background-color: rgb(114, 114, 114)")
+		p = self.serverlist.viewport().palette()
+		p.setColor(self.serverlist.viewport().backgroundRole(), QtGui.QColor(114,114,114))
+		self.serverlist.viewport().setPalette(p)
 		self.serverlist.itemClicked.connect(self.onClicked_serverlist)
 		
 		self.onlineplayers = QtGui.QLabel(self)
@@ -104,7 +106,10 @@ class lobby(QtGui.QWidget):
 		
 		self.serverinfo = QtGui.QTextEdit(self)
 		self.serverinfo.setReadOnly(True)
-		self.serverinfo.setStyleSheet("color: white; background-color: black")
+		p = self.serverinfo.viewport().palette()
+		p.setColor(self.serverinfo.viewport().backgroundRole(), QtGui.QColor(0,0,0))
+		self.serverinfo.viewport().setPalette(p)
+		self.serverinfo.setTextColor(QtGui.QColor("white"))
 		self.serverinfo.move(337, 109)
 		self.serverinfo.resize(173, 245)
 		
@@ -120,7 +125,9 @@ class lobby(QtGui.QWidget):
 		self.lobbychatlog = QtGui.QTextEdit(self)
 		self.lobbychatlog.setReadOnly(True)
 		self.lobbychatlog.setGeometry(2, 445, 513, 198)
-		self.lobbychatlog.setStyleSheet('background-color: rgb(139, 139, 139);')
+		p = self.lobbychatlog.viewport().palette()
+		p.setColor(self.lobbychatlog.viewport().backgroundRole(), QtGui.QColor(139,139,139))
+		self.lobbychatlog.viewport().setPalette(p)
 		self.lobbychatlog.textChanged.connect(self.lobbychatlog_update)
 		
 		self.whitecolor = QtGui.QColor(255, 255, 255)
@@ -328,7 +335,7 @@ class lobby(QtGui.QWidget):
 		self.oocname = self.oocnameinput.text().toUtf8()
 
 	def lobbychatlog_update(self):
-		self.lobbychatlog.verticalScrollBar().setValue(self.lobbychatlog.verticalScrollBar().maximum())
+		if self.icLog.verticalScrollBar().value() == self.icLog.verticalScrollBar().maximum(): self.lobbychatlog.verticalScrollBar().setValue(self.lobbychatlog.verticalScrollBar().maximum())
 
 	def newOOCMessage(self, name, text):
 		self.lobbychatlog.append('%s: %s' % (name, text))

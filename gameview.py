@@ -737,7 +737,9 @@ class gui(QtGui.QWidget):
 		
 		self.ooclog = ChatLogs(self, 1)
 		self.ooclog.setReadOnly(True)
-		self.ooclog.setStyleSheet('background-color: rgb(139, 139, 139);')
+		p = self.ooclog.viewport().palette()
+		p.setColor(self.ooclog.viewport().backgroundRole(), QtGui.QColor(139,139,139))
+		self.ooclog.viewport().setPalette(p)
 		self.ooclog.textChanged.connect(self.ooclog_update)
 		
 		self.oocnameinput = QtGui.QLineEdit(self)
@@ -1426,10 +1428,10 @@ class gui(QtGui.QWidget):
 			self.tcp.send('MC#' + item.text().toUtf8() + '#' + str(self.mychar) + '#%')
 
 	def icLogChanged(self):
-		self.icLog.verticalScrollBar().setValue(self.icLog.verticalScrollBar().maximum())
+		if self.icLog.verticalScrollBar().value() == self.icLog.verticalScrollBar().maximum(): self.icLog.verticalScrollBar().setValue(self.icLog.verticalScrollBar().maximum())
 
 	def ooclog_update(self):
-		self.ooclog.verticalScrollBar().setValue(self.ooclog.verticalScrollBar().maximum())
+		if self.ooclog.verticalScrollBar().value() == self.ooclog.verticalScrollBar().maximum(): self.ooclog.verticalScrollBar().setValue(self.ooclog.verticalScrollBar().maximum())
 	
 	def sendOOCchat(self, name, text):
 		self.tcp.send('CT#' + name + '#' + text + '#%')
