@@ -1913,7 +1913,7 @@ class gui(QtGui.QWidget):
 		if (emote_mod == 1 or emote_mod == 6) and self.m_chatmessage[PREANIM] != "-":
 			self.play_preanim(False)
 		elif emote_mod == 0 or emote_mod == 5 or self.m_chatmessage[PREANIM] == "-":
-			if self.m_chatmessage[NO_INTERRUPT] == "0":
+			if self.m_chatmessage[NO_INTERRUPT] == "0" or self.m_chatmessage[PREANIM] == "-":
 				self.handle_chatmessage_3()
 			else:
 				self.play_preanim(True)
