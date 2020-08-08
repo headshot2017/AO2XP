@@ -34,7 +34,7 @@ def downloadVanilla():
         getattr(QtGui.QMessageBox, msgbox[0])(None, msgbox[1], msgbox[2])
 
     print returncode
-    if returncode != 0: sys.exit(returncode)
+    return returncode
 
 class downloadThread(QtCore.QThread):
     progressValue = QtCore.pyqtSignal(int)
