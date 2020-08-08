@@ -1,5 +1,5 @@
 from PyQt4 import QtGui, QtCore
-import json, urllib, sys, requests, time, os, zipfile
+import json, urllib, sys, requests, time, os, zipfile, sha
 
 returncode = 4
 msgbox = ["", "", ""]
@@ -18,7 +18,7 @@ def downloadVanilla():
     def setLabelText(msg):
         circus.setLabelText(msg)
     def showMessageBox(icon, title, msg):
-        getattr(QtGui.QMessageBox, icon)(None, title, msg)
+        getattr(QtGui.QMessageBox, str(icon))(None, title, msg)
     
     thr = downloadThread(circus)
     thr.progressValue.connect(setProgressValue)
@@ -53,33 +53,50 @@ class downloadThread(QtCore.QThread):
             manifest = json.load(urllib.urlopen("http://s3.wasabisys.com/ao-manifests/assets.json"))
         except:
             self.showMessageBox.emit("critical", "Download failed", "Could not check for latest AO vanilla version.\nPlease check your internet connection.")
+            self.finished.emit()
             return
             
         latest_version = manifest["versions"][0]["version"]
         print latest_version
         link = ""
+        check_hash = ""
         for actions in manifest["versions"][0]["full"]:
             if actions["action"] == "dl":
                 link = actions["url"]
+                check_hash = actions["hash"]
                 print link
                 break
 
         #link = "http://somepeople.ddns.net/headbot/song.zip"
-        self.labelText.emit("Downloading version '%s'..." % latest_version)
-        start = time.clock()
-        zip = requests.get(link, stream=True)
-        length = int(zip.headers.get("content-length"))
-        dl = 0
-        speed = 0.0
 
+        resume_bytes = 0
         filename = os.path.basename(link)
+        download_it = True
         if not os.path.exists(filename):
             downloadfile = open(filename, "wb")
+        else:
+            existing_data = open(filename, "rb").read()
+            sha1 = sha.new(existing_data).hexdigest()
+            downloadfile = open(filename, "ab")
+            resume_bytes = len(existing_data)
+            print resume_bytes
+            del existing_data
+            
+            if sha1 == check_hash: # don't download, the local file already exists
+                download_it = False
+                downloadfile.close()
+
+        if download_it:
+            self.labelText.emit("Downloading version '%s'..." % latest_version)
+            dl = 0
+            speed = 0.0
+            start = time.clock()
+            zip = requests.get(link, stream=True, headers={"Range": "bytes=%d-" % resume_bytes})
+            length = int(zip.headers.get("content-length"))
 
             for noby in zip.iter_content(chunk_size=4096):
                 if not self.jm.isVisible():
                     downloadfile.close()
-                    os.remove(filename)
                     returncode = 4
                     return
 
@@ -112,6 +129,7 @@ class downloadThread(QtCore.QThread):
             zip.extract(f)
             self.progressValue.emit(100 * i / len(notheme_list))
         zip.close()
+        os.remove(filename)
 
         returncode = 0
         self.finished.emit()
