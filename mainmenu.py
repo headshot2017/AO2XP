@@ -335,7 +335,7 @@ class lobby(QtGui.QWidget):
 		self.oocname = self.oocnameinput.text().toUtf8()
 
 	def lobbychatlog_update(self):
-		if self.icLog.verticalScrollBar().value() == self.icLog.verticalScrollBar().maximum(): self.lobbychatlog.verticalScrollBar().setValue(self.lobbychatlog.verticalScrollBar().maximum())
+		if self.lobbychatlog.verticalScrollBar().value() == self.lobbychatlog.verticalScrollBar().maximum(): self.lobbychatlog.verticalScrollBar().setValue(self.lobbychatlog.verticalScrollBar().maximum())
 
 	def newOOCMessage(self, name, text):
 		self.lobbychatlog.append('%s: %s' % (name, text))
