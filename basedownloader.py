@@ -17,10 +17,13 @@ def downloadVanilla():
         circus.setValue(value)
     def setLabelText(msg):
         circus.setLabelText(msg)
+    def showMessageBox(icon, title, msg):
+        getattr(QtGui.QMessageBox, icon)(None, title, msg)
     
     thr = downloadThread(circus)
     thr.progressValue.connect(setProgressValue)
     thr.labelText.connect(setLabelText)
+    thr.showMessageBox.connect(showMessageBox)
     thr.finished.connect(circus.close)
     thr.start()
 
@@ -36,6 +39,7 @@ def downloadVanilla():
 class downloadThread(QtCore.QThread):
     progressValue = QtCore.pyqtSignal(int)
     labelText = QtCore.pyqtSignal(str)
+    showMessageBox = QtCore.pyqtSignal(str, str, str)
     finished = QtCore.pyqtSignal()
 
     def __init__(self, jm):
@@ -48,9 +52,7 @@ class downloadThread(QtCore.QThread):
         try:
             manifest = json.load(urllib.urlopen("http://s3.wasabisys.com/ao-manifests/assets.json"))
         except:
-            msgbox[0] = "critical"
-            msgbox[1] = "Download failed"
-            msgbox[2] = "Could not check for latest AO vanilla version.\nPlease check your internet connection."
+            self.showMessageBox.emit("critical", "Download failed", "Could not check for latest AO vanilla version.\nPlease check your internet connection.")
             return
             
         latest_version = manifest["versions"][0]["version"]
