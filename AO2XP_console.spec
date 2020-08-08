@@ -25,4 +25,5 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True)
+          console=True,
+		  icon="AO2XP_console.ico")
