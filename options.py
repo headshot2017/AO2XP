@@ -153,9 +153,9 @@ class Settings(QtGui.QDialog):
 			except:
 				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "OOC name"))
 			try:
-				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "Showname").decode("utf-8"))
+				self.defaultshowname.setText(ini.read_ini(self.inifile, "General", "showname").decode("utf-8"))
 			except:
-				self.defaultoocname.setText(ini.read_ini(self.inifile, "General", "Showname"))
+				self.defaultshowname.setText(ini.read_ini(self.inifile, "General", "showname"))
 			self.allowdownload_chars.setChecked(ini.read_ini_bool(self.inifile, "General", "download characters"))
 			self.allowdownload_sounds.setChecked(ini.read_ini_bool(self.inifile, "General", "download sounds"))
 			self.allowdownload_music.setChecked(ini.read_ini_bool(self.inifile, "General", "download music"))
@@ -194,7 +194,7 @@ class Settings(QtGui.QDialog):
 		self.inifile.set("General", "save logs", self.savetolog.isChecked())
 		self.inifile.set("General", "combined logs", self.savetolog_combine.isChecked())
 		self.inifile.set("General", "OOC name", self.defaultoocname.text().toUtf8())
-		self.inifile.set("General", "Showname", self.defaultshowname.text().toUtf8())
+		self.inifile.set("General", "showname", self.defaultshowname.text().toUtf8())
 		self.inifile.set("General", "download characters", self.allowdownload_chars.isChecked())
 		self.inifile.set("General", "download sounds", self.allowdownload_sounds.isChecked())
 		self.inifile.set("General", "download music", self.allowdownload_music.isChecked())
@@ -203,7 +203,7 @@ class Settings(QtGui.QDialog):
 		self.inifile.set("Audio", "device", self.device_list.currentIndex())
 		self.inifile.write(open("AO2XP.ini", "w"))
 		
-		with open(AOpath+"callwords.ini", "w") as f:
+		with open(AO2XPpath+"callwords.ini", "w") as f:
 			f.write(self.callwords_edit.toPlainText().toUtf8())
 		
 		self.hide()
