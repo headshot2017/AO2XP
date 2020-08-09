@@ -990,9 +990,6 @@ class gui(QtGui.QWidget):
 		self.musicslider.setRange(0, 100)
 		self.soundslider.setRange(0, 100)
 		self.blipslider.setRange(0, 100)
-		self.musicslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Music volume", 100))
-		self.soundslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Sound volume", 100))
-		self.blipslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Blip volume", 100))
 		self.musicslider.sliderMoved.connect(self.changeMusicVolume)
 		self.soundslider.sliderMoved.connect(self.changeSoundVolume)
 		self.blipslider.valueChanged.connect(self.changeBlipVolume)
@@ -2442,6 +2439,10 @@ class gui(QtGui.QWidget):
 			else:
 				songitem.setBackgroundColor(QtGui.QColor(255, 128, 128))
 			self.musicitems.addItem(songitem)
+
+		self.musicslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Music volume", 100))
+		self.soundslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Sound volume", 100))
+		self.blipslider.setValue(ini.read_ini_int("AO2XP.ini", "Audio", "Blip volume", 100))
 
 		self.tcp.settimeout(0.1)
 		#thread.start_new_thread(self.tcp_thread, ())
