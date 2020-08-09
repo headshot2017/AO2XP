@@ -91,6 +91,7 @@ class downloadThread(QtCore.QThread):
             dl = resume_bytes
             speed = 0.0
             start = time.clock()
+            calcspeed_time = time.time()
             zip = requests.get(link, stream=True, headers={"Range": "bytes=%d-" % resume_bytes})
             length = resume_bytes + int(zip.headers.get("content-length"))
 
@@ -107,8 +108,9 @@ class downloadThread(QtCore.QThread):
                     self.progressValue.emit(percent)
                     self.labelText.emit("Downloading version '%s'... %.1f KB/s" % (latest_version, speed))
                 
-                if (time.clock() - start) >= 1:
-                    speed = (dl//(time.clock() - start)) / 1024.
+                if (time.time() - calcspeed_time) >= 0.5:
+                    calcspeed_time = time.time()
+                    speed = ((dl-resume_bytes)/(time.clock() - start)) / 1024.
                     self.labelText.emit("Downloading version '%s'... %.1f KB/s" % (latest_version, speed))
 
             print "downloaded"
