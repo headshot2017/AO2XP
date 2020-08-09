@@ -54,7 +54,7 @@ class lobby(QtGui.QWidget):
 		self.connectingimg.hide()
 		
 		self.clientver = QtGui.QLabel(self)
-		self.clientver.setText('AO2XP 1.4 by Headshot')
+		self.clientver.setText('AO2XP 1.4.1 by Headshot')
 		self.clientver.resize(self.clientver.sizeHint())
 		self.clientver.move(self.pix_lobby.size().width() - self.clientver.size().width(), 0)
 	
@@ -377,7 +377,7 @@ class MasterServer(QtCore.QThread):
 				header = network[0]
 				
 				if header == "servercheok":
-					self.ms_tcp.send("HI#AO2XP %s#%%ID#AO2XP by Headshot#1.4#%%" % hardware.get_hdid())
+					self.ms_tcp.send("HI#AO2XP %s#%%ID#AO2XP by Headshot#1.4.1#%%" % hardware.get_hdid())
 					self.ms_tcp.send("ALL#%")
 				
 				elif header == 'DOOM':
