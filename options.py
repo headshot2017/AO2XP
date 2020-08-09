@@ -114,6 +114,23 @@ class Settings(QtGui.QDialog):
 		audio_layout.setWidget(0, QtGui.QFormLayout.FieldRole, self.device_list)
 		audio_layout.setWidget(1, QtGui.QFormLayout.FieldRole, separators[3])
 
+		volumelabel = QtGui.QLabel("Sound volume")
+		musiclabel = QtGui.QLabel("Music")
+		soundlabel = QtGui.QLabel("Sounds")
+		bliplabel = QtGui.QLabel("Blips")
+		self.musicslider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+		self.soundslider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+		self.blipslider = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+		self.musicslider.setRange(0, 100)
+		self.soundslider.setRange(0, 100)
+		self.blipslider.setRange(0, 100)
+		audio_layout.setWidget(2, QtGui.QFormLayout.LabelRole, musiclabel)
+		audio_layout.setWidget(2, QtGui.QFormLayout.FieldRole, self.musicslider)
+		audio_layout.setWidget(3, QtGui.QFormLayout.LabelRole, soundlabel)
+		audio_layout.setWidget(3, QtGui.QFormLayout.FieldRole, self.soundslider)
+		audio_layout.setWidget(4, QtGui.QFormLayout.LabelRole, bliplabel)
+		audio_layout.setWidget(4, QtGui.QFormLayout.FieldRole, self.blipslider)
+
 		info = BASS_DEVICEINFO()
 		ind = 0
 		while BASS_GetDeviceInfo(ind, info):
@@ -161,7 +178,11 @@ class Settings(QtGui.QDialog):
 			self.allowdownload_music.setChecked(ini.read_ini_bool(self.inifile, "General", "download music"))
 			self.allowdownload_evidence.setChecked(ini.read_ini_bool(self.inifile, "General", "download evidence"))
 			self.currtheme.setCurrentIndex(self.themes.index(ini.read_ini(self.inifile, "General", "theme", "default")))
+
 			self.device_list.setCurrentIndex(ini.read_ini_int(self.inifile, "Audio", "device", BASS_GetDevice()))
+            self.musicslider.setValue(ini.read_ini_int(self.inifile, "Audio", "Music volume", 100))
+            self.soundslider.setValue(ini.read_ini_int(self.inifile, "Audio", "Sound volume", 100))
+            self.blipslider.setValue(ini.read_ini_int(self.inifile, "Audio", "Blip volume", 100))
 		else:
 			self.savetolog.setChecked(False)
 			self.savetolog_combine.setChecked(False)
@@ -171,7 +192,11 @@ class Settings(QtGui.QDialog):
 			self.allowdownload_music.setChecked(True)
 			self.allowdownload_evidence.setChecked(True)
 			self.currtheme.setCurrentIndex(self.themes.index("default"))
+
 			self.device_list.setCurrentIndex(BASS_GetDevice())
+            self.musicslider.setValue(100)
+            self.soundslider.setValue(100)
+            self.blipslider.setValue(100)
 		
 		self.callwords_edit.clear()
 		if exists(AO2XPpath+"callwords.ini"):
@@ -200,7 +225,12 @@ class Settings(QtGui.QDialog):
 		self.inifile.set("General", "download music", self.allowdownload_music.isChecked())
 		self.inifile.set("General", "download evidence", self.allowdownload_evidence.isChecked())
 		self.inifile.set("General", "theme", self.currtheme.currentText())
+
 		self.inifile.set("Audio", "device", self.device_list.currentIndex())
+        self.inifile.set("Audio", "Music volume", self.musicslider.value())
+        self.inifile.set("Audio", "Sound volume", self.soundslider.value())
+        self.inifile.set("Audio", "Blip volume", self.blipslider.value())
+
 		self.inifile.write(open("AO2XP.ini", "w"))
 		
 		with open(AO2XPpath+"callwords.ini", "w") as f:
