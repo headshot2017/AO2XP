@@ -1078,7 +1078,7 @@ class gui(QtGui.QWidget):
 			self.oocnameinput.setText("unnamed")
 		self.charside = str(self.posdropdown.itemText(ind))
 		self.setJudgeButtons()
-		self.sendOOCchat(self.oocnameinput.text().toUtf8(), "/pos "+self.charside)
+		#self.sendOOCchat(self.oocnameinput.text().toUtf8(), "/pos "+self.charside) # WE'RE IN AO 2.8, NO NEED FOR THIS ANYMORE
 	
 	def changeMusicVolume(self, value):
 		if self.music:
