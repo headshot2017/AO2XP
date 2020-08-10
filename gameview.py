@@ -1901,6 +1901,7 @@ class gui(QtGui.QWidget):
 				self.chatbox.raise_()
 				self.effectview.raise_()
 				self.objectionview.raise_()
+				self.whiteflashlab.raise_()
 
 				self.sidechar.set_flipped(self.m_chatmessage[OTHER_FLIP] == "1")
 				self.sidechar.play_idle(self.m_chatmessage[OTHER_NAME], self.m_chatmessage[OTHER_EMOTE])
@@ -2058,7 +2059,7 @@ class gui(QtGui.QWidget):
 				fx_folder = fx_list[1]
 				fx_sound = fx_list[2]
 
-			if fx and fx != "-":
+			if fx and fx not in ("-", "None"):
 				self.do_effect(fx, fx_sound, self.m_chatmessage[CHARNAME], fx_folder)
 
 		elif self.m_chatmessage[REALIZATION] == "1":
