@@ -1078,7 +1078,12 @@ class gui(QtGui.QWidget):
 			self.oocnameinput.setText("unnamed")
 		self.charside = str(self.posdropdown.itemText(ind))
 		self.setJudgeButtons()
-		#self.sendOOCchat(self.oocnameinput.text().toUtf8(), "/pos "+self.charside) # WE'RE IN AO 2.8, NO NEED FOR THIS ANYMORE
+
+		server_is_2_8 = "additive" in self.features and "looping_sfx" in self.features and "effects" in self.features
+		if server_is_2_8:
+			self.tcp.send("SP#"+self.charside+"#%") # all hail new AO 2.8 packet
+		else:
+			self.sendOOCchat(self.oocnameinput.text().toUtf8(), "/pos "+self.charside)
 	
 	def changeMusicVolume(self, value):
 		if self.music:
