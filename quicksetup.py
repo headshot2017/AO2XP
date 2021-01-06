@@ -3,6 +3,7 @@ import zipfile
 import subprocess
 import sys
 import os
+import platform
 
 def pip_install(package):
     subprocess.call([sys.executable, "-m", "pip", "install", package])
@@ -28,31 +29,45 @@ print "renaming pybass.py"
 if os.path.exists("pybass/__init__.py"): os.remove('pybass/__init__.py')
 os.rename('pybass/pybass.py', 'pybass/__init__.py')
 
+BASSZIP = "bass24.zip"
+BASSDLL = "bass.dll"
+BASSOPUSZIP = "bassopus24.zip"
+BASSOPUSDLL = "bassopus.dll"
+if platform.system() == "Darwin":
+    BASSZIP = "bass24-osx.zip"
+    BASSDLL = "libbass.dylib"
+    BASSOPUSZIP = "bassopus24-osx.zip"
+    BASSOPUSDLL = "libbassopus.dylib"
+elif platform.system() == "Linux":
+    BASSZIP = "bass24-linux.zip"
+    BASSDLL = "libbass.so"
+    BASSOPUSZIP = "bassopus24-linux.zip"
+    BASSOPUSDLL = "libbassopus.so"
 
-print "downloading bass"
-filedata = urllib2.urlopen('http://us.un4seen.com/files/bass24.zip')
+print "downloading", BASSZIP
+filedata = urllib2.urlopen('http://us.un4seen.com/files/'+BASSZIP)
 datatowrite = filedata.read()
 
-with open('bass24.zip', 'wb') as f:  
+with open(BASSZIP, 'wb') as f:  
     f.write(datatowrite)
     f.close()
 
-print "extracting bass"
-zip_ref = zipfile.ZipFile('bass24.zip', 'r')
-zip_ref.extract('bass.dll')
+print "extracting "+BASSDLL+" from "+BASSZIP
+zip_ref = zipfile.ZipFile(BASSZIP, 'r')
+zip_ref.extract(BASSDLL)
 zip_ref.close()
 
-print "downloading bassopus"
-filedata = urllib2.urlopen('http://us.un4seen.com/files/bassopus24.zip')
+print "downloading", BASSOPUSZIP
+filedata = urllib2.urlopen('http://us.un4seen.com/files/'+BASSOPUSZIP)
 datatowrite = filedata.read()
 
-with open('bassopus24.zip', 'wb') as f:  
+with open(BASSOPUSZIP, 'wb') as f:
     f.write(datatowrite)
     f.close()
 
-print "extracting bassopus"
-zip_ref = zipfile.ZipFile('bassopus24.zip', 'r')
-zip_ref.extract('bassopus.dll')
+print "extracting "+BASSOPUSDLL+" from "+BASSOPUSZIP
+zip_ref = zipfile.ZipFile(BASSOPUSZIP, 'r')
+zip_ref.extract(BASSOPUSDLL)
 zip_ref.close()
 
 print "installing apng"
@@ -72,20 +87,30 @@ except ImportError:
     print "installing Pillow 5.3.0"
     pip_install("Pillow==5.3.0")
 
-
-print "downloading pyqt4"
-filedata = requests.get('http://raw.githubusercontent.com/dhb52/python-lib/master/PyQt4-4.11.4-cp27-cp27m-win32.whl')  
-datatowrite = filedata.content
-
-with open('PyQt4-4.11.4-cp27-cp27m-win32.whl', 'wb') as f:  
-    f.write(datatowrite)
-    f.close()
-
-
-print "installing pyqt4"
-pip_install('PyQt4-4.11.4-cp27-cp27m-win32.whl')
-
 print "installing pyinstaller"
 pip_install('pyinstaller')
+
+if platform.system() == "Windows":
+    print "downloading pyqt4"
+    filedata = requests.get('http://raw.githubusercontent.com/dhb52/python-lib/master/PyQt4-4.11.4-cp27-cp27m-win32.whl')  
+    datatowrite = filedata.content
+
+    with open('PyQt4-4.11.4-cp27-cp27m-win32.whl', 'wb') as f:  
+        f.write(datatowrite)
+        f.close()
+
+    print "installing pyqt4"
+    pip_install('PyQt4-4.11.4-cp27-cp27m-win32.whl')
+
+elif platform.system() == "Darwin":
+    print "installing pyobjc"
+    pip_install("pyobjc")
+
+    print "for Mac OS X, use homebrew or macports to install pyqt4:"
+    print "  brew install cartr/qt4/pyqt"
+    print "  sudo port install py27-pyqt4"
+
+elif platform.system() == "Linux":
+    print "you need to install PyQt4 on your linux distro after this"
 
 print "done"
