@@ -1,13 +1,20 @@
-import sys, thread, time, os
+import sys, thread, time, os, platform
 from os.path import exists
 from PyQt4 import QtGui, QtCore
 app = QtGui.QApplication(sys.argv)
 
+osname = platform.system()
+bassdll = "bass.dll"
+if osname == "Darwin":
+    bassdll = "libbass.dylib"
+elif osname == "Linux":
+    bassdll = "libbass.so"
+
 debugmode = len(sys.argv) > 1 and sys.argv[1] == "debug"
 if not debugmode:
     fakebass = len(sys.argv) > 1 and sys.argv[1] == "bass"
-    if not exists("bass.dll") or fakebass:
-        QtGui.QMessageBox.critical(None, "Unable to launch game", "Couldn't find the file 'bass.dll' on the client folder.\nAO2XP needs this file in order to play sounds and music.\nThe file is included in the client's zip file, make sure it's in the same folder as AO2XP.exe")
+    if not exists(bassdll) or fakebass:
+        QtGui.QMessageBox.critical(None, "Unable to launch game", "Couldn't find the file %s on the client folder.\nAO2XP needs this file in order to play sounds and music.\nThe file is included in the client's zip file, make sure it's in the same folder as the AO2XP exe." % bassdll)
         os._exit(-2)
 
 class gamewindow(QtGui.QMainWindow):
