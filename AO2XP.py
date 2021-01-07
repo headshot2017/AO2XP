@@ -5,9 +5,7 @@ app = QtGui.QApplication(sys.argv)
 
 osname = platform.system()
 bassdll = "bass.dll"
-if osname == "Darwin":
-    bassdll = "libbass.dylib"
-elif osname == "Linux":
+if osname != "Windows":
     bassdll = "libbass.so"
 
 debugmode = len(sys.argv) > 1 and sys.argv[1] == "debug"
