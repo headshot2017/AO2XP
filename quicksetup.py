@@ -70,6 +70,10 @@ zip_ref = zipfile.ZipFile(BASSOPUSZIP, 'r')
 zip_ref.extract(BASSOPUSDLL)
 zip_ref.close()
 
+if platform.system() == "Darwin":
+    os.rename(BASSDLL, "libbass.so")
+    os.rename(BASSOPUSDLL, "libbassopus.so")
+
 print "installing apng"
 pip_install("apng")
 
