@@ -1617,7 +1617,10 @@ class gui(QtGui.QWidget):
 			return
 		
 		AO2chat = "cccc_ic_support" in self.features
-		
+
+		if int(p_contents[CHAR_ID]) in self.muted: # skip the self.chatmessage copy line below
+			return
+
 		for n_string in range(self.chatmessage_size):
 			if n_string < len(p_contents) and (n_string < 16 or AO2chat):
 				self.m_chatmessage[n_string] = p_contents[n_string]
@@ -1626,7 +1629,7 @@ class gui(QtGui.QWidget):
 		
 		f_char_id = int(self.m_chatmessage[CHAR_ID])
 		
-		if f_char_id < 0 or f_char_id >= len(self.charlist) or f_char_id in self.muted:
+		if f_char_id < 0 or f_char_id >= len(self.charlist):
 			return
 		
 		f_showname = ""
