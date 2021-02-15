@@ -7,6 +7,10 @@ osname = platform.system()
 bassdll = "bass.dll"
 if osname != "Windows":
     bassdll = "libbass.so"
+if osname == "Darwin" and ".app" in __file__: # bundle
+    path = "/".join(__file__.split("/")[:-4])
+    sys.stderr.write(path)
+    os.chdir(path)
 
 debugmode = len(sys.argv) > 1 and sys.argv[1] == "debug"
 if not debugmode:
@@ -67,7 +71,7 @@ if not debugmode:
 from pybass import *
 import gameview, mainmenu, options, ini
 
-BASS_Init(ini.read_ini_int("base/AO2XP.ini", "Audio", "device", -1), 44100, 0, 0, 0)
+BASS_Init(ini.read_ini_int("AO2XP.ini", "Audio", "device", -1), 44100, 0, 0, 0)
 BASS_PluginLoad("bassopus", 0)
 shit = gamewindow()
 shit.show()
