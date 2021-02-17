@@ -71,8 +71,8 @@ zip_ref.extract(BASSOPUSDLL)
 zip_ref.close()
 
 if platform.system() == "Darwin":
-    os.rename(BASSDLL, "libbass.so")
-    os.rename(BASSOPUSDLL, "libbassopus.so")
+    open("libbass.so", "wb").write(open(BASSDLL, "rb").read())
+    open("libbassopus.so", "wb").write(open(BASSOPUSDLL, "rb").read())
 
 print "installing apng"
 pip_install("apng")
@@ -91,8 +91,8 @@ except ImportError:
     print "installing Pillow 5.3.0"
     pip_install("Pillow==5.3.0")
 
-print "installing pyinstaller"
-pip_install('pyinstaller')
+print "installing pyinstaller, six, appdirs, packaging"
+pip_install('pyinstaller==2.1' if platform.system() == "Darwin" else 'pyinstaller==3.6' + 'six appdirs packaging')
 
 if platform.system() == "Windows":
     print "downloading pyqt4"

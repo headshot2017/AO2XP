@@ -10,11 +10,9 @@ from setuptools import setup
 APP = ['AO2XP.py']
 DATA_FILES = []
 OPTIONS = dict(
+	iconfile = "AO2XP.icns",
+
 	includes = [
-		"zlib",
-		"sip",
-		"PyQt4",
-		"PyQt4._qt",
 		"PyQt4.QtCore",
 		"PyQt4.QtGui",
 	],
@@ -31,7 +29,12 @@ OPTIONS = dict(
 		"PyQt4.phonon",
 	],
 
-	packages = [
+	resources = [
+		"AO2XPbase",
+		"libbass.so",
+		"libbass.dylib",
+		"libbassopus.so",
+		"libbassopus.dylib",
 	],
 
 	argv_emulation = False
