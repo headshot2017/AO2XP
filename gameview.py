@@ -2830,6 +2830,10 @@ class TCP_Thread(QtCore.QThread):
 				elif header == 'KB':
 					reason = network[1]
 					self.parent.emit(QtCore.SIGNAL('showMessage(QString, QString, QString)'), 'critical', 'Connection lost', 'You have been banned from the server. (%s)' % reason)
+
+				elif header == 'BB':
+					message = network[1]
+					self.parent.emit(QtCore.SIGNAL('showMessage(QString, QString, QString)'), 'warning', 'Message from server', message)
 				
 				elif header == "CHECK": #ping
 					pingafter = time.time()
