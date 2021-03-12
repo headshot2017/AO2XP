@@ -2831,9 +2831,14 @@ class TCP_Thread(QtCore.QThread):
 					reason = network[1]
 					self.parent.emit(QtCore.SIGNAL('showMessage(QString, QString, QString)'), 'critical', 'Connection lost', 'You have been banned from the server. (%s)' % reason)
 
-				elif header == 'BB':
+				elif header == 'BB': # message popup (AO 2.9)
 					message = network[1]
 					self.parent.emit(QtCore.SIGNAL('showMessage(QString, QString, QString)'), 'warning', 'Message from server', message)
+
+				elif header == 'AUTH': # login status (AO 2.9)
+					status = int(network[1])
+					statusStrings = ["You have logged out", "Wrong password", "Logged in"]
+					self.OOC_Log.emit("<b>%s</b>" % (statusStrings[status+1]))
 				
 				elif header == "CHECK": #ping
 					pingafter = time.time()
