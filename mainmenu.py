@@ -574,6 +574,8 @@ class AOServerInfo(QtCore.QThread):
 						evidence = []
 					
 					for evi in evidence:
+						while len(evi) < 3: # new AO 2.9 bug where they never correctly escaped evidence name/desc/image on FantaProtocol...
+							evi += [""]
 						evi[0] = evi[0].decode("utf-8")
 						evi[1] = evi[1].decode("utf-8")
 						evi[2] = evi[2].decode("utf-8")

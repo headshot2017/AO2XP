@@ -67,6 +67,8 @@ def delay(msec):
 
 def decode_ao_str(text):
 	return text.replace("<percent>", "%").replace("<pound>", "#").replace("<num>", "#").replace("<and>", "&").replace("<dollar>", "$")
+def encode_ao_str(text):
+	return text.replace("%", "<percent>").replace("#", "<pound>").replace("&", "<and>").replace("$", "<dollar>")
 	
 def get_char_ini(char, section, value, default=""):
 	tempini = ConfigParser()
@@ -2472,9 +2474,11 @@ class gui(QtGui.QWidget):
 		if self.evidencedropdown.count() > 0:
 			self.evidencedropdown.clear()
 		for evi in self.evidence:
-			evi[0] = evi[0].decode('utf-8')
-			evi[1] = evi[1].decode('utf-8')
-			evi[2] = evi[2].decode('utf-8')
+			while len(evi) < 3: # new AO 2.9 bug where they never correctly escaped evidence name/desc/image on FantaProtocol
+				evi += [""]
+			evi[0] = decode_ao_str(evi[0].decode('utf-8'))
+			evi[1] = decode_ao_str(evi[1].decode('utf-8'))
+			evi[2] = decode_ao_str(evi[2].decode('utf-8'))
 			self.evidencedropdown.addItem(evi[0])
 
 		if not self.evidence:
@@ -2606,12 +2610,14 @@ class EditEvidenceDialog(QtGui.QDialog):
 			self.evipicture.setPixmap(QtGui.QPixmap(AO2XPpath + 'themes/default/evidence_selected.png'))
 
 	def onSave(self):
-		name = self.eviname.text().toUtf8()
-		desc = self.evidesc.toPlainText().toUtf8()
+		name = encode_ao_str(self.eviname.text().toUtf8())
+		desc = encode_ao_str(self.evidesc.toPlainText().toUtf8())
+
 		if self.editing:
 			self.gamegui.tcp.send('EE#' + str(self.edit_ind) + '#' + name + '#' + desc + '#' + self.filename + '#%')
 		else:
 			self.gamegui.tcp.send('PE#' + name + '#' + desc + '#' + self.filename + '#%')
+
 		self.eviname.setText('')
 		self.evidesc.setText('')
 		evipic = QtGui.QPixmap(AOpath + 'evidence/empty.png')
@@ -2819,8 +2825,8 @@ class TCP_Thread(QtCore.QThread):
 					self.newBackground.emit(network[1])
 				
 				elif header == 'CT':
-					name = network[1].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
-					chatmsg = network[2].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#').replace("\n", "<br />")
+					name = decode_ao_str(network[1].decode('utf-8'))
+					chatmsg = decode_ao_str(network[2].decode('utf-8').replace("\n", "<br />"))
 					#self.parent.ooclog.append('<b>%s:</b> %s' % (name, chatmsg))
 					self.OOC_Log.emit("<b>%s:</b> %s" % (name, chatmsg))
 				
