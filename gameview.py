@@ -1234,14 +1234,17 @@ class gui(QtGui.QWidget):
 			self.tcp.send('RT#testimony' + str(type + 1) + '#%')
 		else:
 			self.tcp.send("RT#judgeruling#" +str(variant)+ "#%")
+
+	def onPVPacket(self, charname):
+		exec open(AO2XPpath+"ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
+		if not self.swapping:
+			self.loadCharacter(charname)
 	
 	def loadCharacter(self, charname):
-		exec open(AO2XPpath+"ao2xp_themes/"+get_option("General", "theme", "default")+"/theme.py")
-
-		self.effectdropdown.clear()
-		self.emotedropdown.clear()
 		self.msgqueueList.clear()
 		self.msgqueue = []
+		self.effectdropdown.clear()
+		self.emotedropdown.clear()
 		self.charemotes = []
 		self.selectedemote = 0
 		self.current_emote_page = 0
@@ -2434,7 +2437,7 @@ class gui(QtGui.QWidget):
 		#thread.start_new_thread(self.tcp_thread, ())
 		self.tcpthread = TCP_Thread(self)
 		self.tcpthread.MS_Chat.connect(self.netmsg_ms)
-		self.tcpthread.newChar.connect(self.loadCharacter)
+		self.tcpthread.newChar.connect(self.onPVPacket)
 		self.tcpthread.newBackground.connect(self.setBackground)
 		self.tcpthread.OOC_Log.connect(self.ooclog.append)
 		self.tcpthread.IC_Log.connect(self.icLog.append)
@@ -2761,8 +2764,6 @@ class TCP_Thread(QtCore.QThread):
 				elif header == 'PV':
 					self.parent.mychar = int(network[3])
 					self.parent.charselect.hide()
-					if self.parent.swapping:
-						continue
 					self.newChar.emit(self.parent.charlist[self.parent.mychar][0])
 				
 				elif header == 'LE':
