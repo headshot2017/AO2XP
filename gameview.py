@@ -121,6 +121,9 @@ def download_thread(link, savepath):
         print "download missing: %s" % link
         fp = urllib.urlopen(bucket+link)
         if fp.getcode() == 200:
+            if not os.path.exists(savepath[:-1]):
+				os.makedirs(savepath[:-1])
+
             with open(savepath, "wb") as f:
                 f.write(fp.read())
             print "successfully downloaded:", link
@@ -1552,7 +1555,12 @@ class gui(QtGui.QWidget):
 			else:
 				msg += "-1#"
 
-			msg += str(self.pairoffset.value())+"#" # send this anyway; AO 2.8
+			# AO 2.8: always send offset
+			if "y_offset" in self.features: # AO 2.9
+				msg += str(self.pairoffset.value())+"&0#"
+			else:
+				msg += str(self.pairoffset.value())+"#"
+
 			msg += str(int(self.nointerruptbtn.isChecked()))+"#" # NoInterrupt(TM)
 
 		if "looping_sfx" in self.features: # AO 2.8
@@ -1807,23 +1815,23 @@ class gui(QtGui.QWidget):
 		emote_mod = int(self.m_chatmessage[EMOTE_MOD])
 
 		# AO 2.8: always offset player
-		if side == "def":
-			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-			vert_offset = 0
-			if hor_offset > 0:
-				vert_offset = hor_offset / 10
-			self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
+		hor_offset = vert_offset = 0
 
-		elif side == "pro":
-			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-			vert_offset = 0
-			if hor_offset < 0:
-				vert_offset = -1 * hor_offset / 10
-			self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
-
+		if "y_offset" in self.features: # AO 2.9
+			hor_offset = int(self.m_chatmessage[SELF_OFFSET].split("&")[0])
+			vert_offset = int(self.m_chatmessage[SELF_OFFSET].split("&")[1]) if len(self.m_chatmessage[SELF_OFFSET].split("&")) > 1 else 0
 		else:
 			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
-			self.char.move(256 * hor_offset / 100, 0)
+
+
+		if side == "def":
+			if hor_offset > 0 and vert_offset == 0:
+				vert_offset = hor_offset / 10
+		elif side == "pro":
+			if hor_offset < 0 and vert_offset == 0:
+				vert_offset = -1 * hor_offset / 10
+
+		self.char.move(256 * hor_offset / 100, 192 * vert_offset / 100)
 
 		# check if paired
 		if not self.m_chatmessage[OTHER_CHARID]:
@@ -1835,7 +1843,7 @@ class gui(QtGui.QWidget):
 			else:
 				got_other_charid = int(self.m_chatmessage[OTHER_CHARID])
 
-			if got_other_charid > -1:
+			if got_other_charid > -1: # user is paired
 				self.sidechar.show()
 
 				if "effects" in self.features:    
@@ -1843,65 +1851,36 @@ class gui(QtGui.QWidget):
 				else:    
 					pair_order = -1
 
-				if side == "def":
-					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
-					vert2_offset = 0
-					if hor2_offset > 0:
-						vert2_offset = hor2_offset / 10
-					self.sidechar.move(256 * hor2_offset / 100, 192 * vert2_offset / 100)
-
-					if pair_order == -1: # pair ordering not supported
-						if hor2_offset >= hor_offset:
-							self.sidechar.raise_()
-							self.char.raise_()
-						else:
-							self.char.raise_()
-							self.sidechar.raise_()
-					elif pair_order == 0: # front
-						self.sidechar.raise_()
-						self.char.raise_()
-					elif pair_order == 1: # behind
-						self.sidechar.raise_()
-						self.char.raise_()
-				
-				elif side == "pro":
-					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
-					vert2_offset = 0
-					if hor2_offset < 0:
-						vert2_offset = -1 * hor2_offset / 10
-					self.sidechar.move(256 * hor2_offset / 100, 192 * vert2_offset / 100)
-
-					if pair_order == -1: # pair ordering not supported
-						if hor2_offset <= hor_offset:
-							self.sidechar.raise_()
-							self.char.raise_()
-						else:
-							self.char.raise_()
-							self.sidechar.raise_()
-					elif pair_order == 0: # front
-						self.sidechar.raise_()
-						self.char.raise_()
-					elif pair_order == 1: # behind
-						self.sidechar.raise_()
-						self.char.raise_()
-				
+				hor2_offset = vert2_offset = 0
+				if "y_offset" in self.features: # AO 2.9
+					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET].split("&")[0])
+					vert2_offset = int(self.m_chatmessage[OTHER_OFFSET].split("&")[1]) if len(self.m_chatmessage[OTHER_OFFSET].split("&")) > 1 else 0
 				else:
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET])
-					self.sidechar.move(256 * hor2_offset / 100, 0)
 
-					if pair_order == -1: # pair ordering not supported
-						if hor2_offset >= hor_offset:
-							self.sidechar.raise_()
-							self.char.raise_()
-						else:
-							self.char.raise_()
-							self.sidechar.raise_()
-					elif pair_order == 0: # front
+				if side == "def":
+					if hor2_offset > 0:
+						vert2_offset = hor2_offset / 10
+
+				elif side == "pro":
+					if hor2_offset < 0:
+						vert2_offset = -1 * hor2_offset / 10
+
+				if pair_order == -1: # pair ordering not supported
+					if hor2_offset >= hor_offset:
 						self.sidechar.raise_()
 						self.char.raise_()
-					elif pair_order == 1: # behind
-						self.sidechar.raise_()
+					else:
 						self.char.raise_()
+						self.sidechar.raise_()
+				elif pair_order == 0: # front
+					self.char.raise_()
+					self.sidechar.raise_()
+				elif pair_order == 1: # behind
+					self.sidechar.raise_()
+					self.char.raise_()
+
+				self.sidechar.move(256 * hor2_offset / 100, 192 * vert2_offset / 100)
 
 				self.bench.raise_()
 				self.chatbox.raise_()
