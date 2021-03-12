@@ -7,6 +7,11 @@ AOpath = "base/"
 AO2XPpath = "AO2XPbase/"
 #AOpath = "I:/aovanilla1.7.5/client/base/"
 
+def decode_ao_str(text):
+	return text.replace("<percent>", "%").replace("<pound>", "#").replace("<num>", "#").replace("<and>", "&").replace("<dollar>", "$")
+def encode_ao_str(text):
+	return text.replace("%", "<percent>").replace("#", "<pound>").replace("&", "<and>").replace("$", "<dollar>")
+
 class PicButton(QtGui.QAbstractButton):
 	def __init__(self, pixmap, parent=None):
 		super(PicButton, self).__init__(parent)
@@ -438,6 +443,7 @@ class AOServerInfo(QtCore.QThread):
 		joinooc = []
 		areas = [[], [], [], []]
 		features = []
+		evidence = []
 		pingtimer = 150
 		readytick = -1
 
@@ -566,19 +572,16 @@ class AOServerInfo(QtCore.QThread):
 					del network[0]
 					del network[len(network)-1]
 					if len(network) > 0:
-						if "<and>" in network[0]: #The Next Chapter actually does this sorcery...
-							evidence = [evi.split("<and>") for evi in network]
-						else:
-							evidence = [evi.split("&") for evi in network]
+						evidence = [evi.split("&") for evi in network]
 					else:
 						evidence = []
 					
 					for evi in evidence:
-						while len(evi) < 3: # new AO 2.9 bug where they never correctly escaped evidence name/desc/image on FantaProtocol...
+						while len(evi) < 3: # new AO 2.9 bug where they never correctly escaped evidence name/desc/image on FantaProtocol
 							evi += [""]
-						evi[0] = evi[0].decode("utf-8")
-						evi[1] = evi[1].decode("utf-8")
-						evi[2] = evi[2].decode("utf-8")
+						evi[0] = decode_ao_str(evi[0].decode("utf-8"))
+						evi[1] = decode_ao_str(evi[1].decode("utf-8"))
+						evi[2] = decode_ao_str(evi[2].decode("utf-8"))
 					print '[client]', 'received evidence'
 				
 				elif header == 'HP':
