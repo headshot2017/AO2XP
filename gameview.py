@@ -1392,10 +1392,6 @@ class gui(QtGui.QWidget):
 		self.evidencedesc.setText(self.evidence[ind][1])
 		self.setEvidenceImg(self.evidenceimage, self.evidence[ind][2])
 
-	def buttonthread(self, ind, img):
-		if ind < self.max_emotes_on_page:
-			self.emotebuttons[ind].setPixmap(QtGui.QPixmap(img))
-
 	def changeEmote(self, dropdown, ind):
 		if ind == -1:
 			return
@@ -2486,53 +2482,6 @@ class gui(QtGui.QWidget):
 			self.evidencedesc.setText('.')
 		else:
 			self.evidencedropdown.setCurrentIndex(self.selectedevi)
-
-class ButtonThread(QtCore.QThread):
-
-	def __init__(self, ind, img):
-		QtCore.QThread.__init__(self)
-		self.ind = ind
-		self.img = img
-
-	def __del__(self):
-		self.wait()
-
-	def run(self):
-		self.emit(QtCore.SIGNAL('buttonthread(int, QString)'), self.ind, self.img)
-
-
-class setBackgroundThread(QtCore.QThread):
-
-	def __init__(self, bg):
-		QtCore.QThread.__init__(self)
-		self.bg = bg
-
-	def __del__(self):
-		self.wait()
-
-	def run(self):
-		self.emit(QtCore.SIGNAL('setBackground(QString)'), self.bg)
-
-
-class anythingThread(QtCore.QThread):
-
-	def __init__(self, signal, *args):
-		QtCore.QThread.__init__(self)
-		self.args = args
-		self.signal = signal
-
-	def __del__(self):
-		self.wait()
-
-	def run(self):
-		emitstr = "self.emit(QtCore.SIGNAL('%s')" % self.signal
-		for i in range(len(self.args)):
-			emitstr += ', self.args[' + str(i) + ']'
-
-		emitstr += ')'
-		print emitstr
-		exec emitstr
-
 
 class PresentButton(QtGui.QLabel):
 
