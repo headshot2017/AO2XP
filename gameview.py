@@ -834,9 +834,13 @@ class gui(QtGui.QWidget):
 		self.pairoffset = QtGui.QSlider(QtCore.Qt.Horizontal, self.gametab_pair)
 		self.pairoffset.setRange(-100, 100)
 		self.pairoffset.setValue(0)
-		self.pairoffset_l = QtGui.QLabel("Position offset", self.gametab_pair)
+		self.pairoffset_l = QtGui.QLabel("X offset", self.gametab_pair)
+		self.ypairoffset = QtGui.QSlider(QtCore.Qt.Vertical, self.gametab_pair)
+		self.ypairoffset.setRange(-100, 100)
+		self.ypairoffset.setValue(0)
+		self.ypairoffset_l = QtGui.QLabel("Y offset", self.gametab_pair)
 		self.pairoffsetreset = QtGui.QPushButton("Reset", self.gametab_pair)
-		self.pairoffsetreset.clicked.connect(partial(self.pairoffset.setValue, 0))
+		self.pairoffsetreset.clicked.connect(self.resetOffsets)
 		self.pair_order = QtGui.QComboBox(self.gametab_pair)
 		self.pair_order.addItem("Front")
 		self.pair_order.addItem("Behind")
@@ -1035,6 +1039,10 @@ class gui(QtGui.QWidget):
 		self.setBackground('default')
 		
 		self.charselect = charselect.charselect(self)
+
+	def resetOffsets(self):
+		self.pairoffset.setValue(0)
+		self.ypairoffset.setValue(0)
 
 	def screenShakeTick(self):
 		self.shakes_remaining -= 1
@@ -1821,8 +1829,9 @@ class gui(QtGui.QWidget):
 		hor_offset = vert_offset = 0
 
 		if "y_offset" in self.features: # AO 2.9
-			hor_offset = int(self.m_chatmessage[SELF_OFFSET].split("&")[0])
-			vert_offset = int(self.m_chatmessage[SELF_OFFSET].split("&")[1]) if len(self.m_chatmessage[SELF_OFFSET].split("&")) > 1 else 0
+			keyword = "<and>" if "<and>" in self.m_chatmessage[SELF_OFFSET] else "&" # WHAT THE FUCK HDF??? how and why??!
+			hor_offset = int(self.m_chatmessage[SELF_OFFSET].split(keyword)[0])
+			vert_offset = int(self.m_chatmessage[SELF_OFFSET].split(keyword)[1]) if len(self.m_chatmessage[SELF_OFFSET].split(keyword)) > 1 else 0
 		else:
 			hor_offset = int(self.m_chatmessage[SELF_OFFSET])
 
@@ -1856,6 +1865,7 @@ class gui(QtGui.QWidget):
 
 				hor2_offset = vert2_offset = 0
 				if "y_offset" in self.features: # AO 2.9
+					keyword = "<and>" if "<and>" in self.m_chatmessage[OTHER_OFFSET] else "&" # WHAT THE FUCK HDF??? how and why??!
 					hor2_offset = int(self.m_chatmessage[OTHER_OFFSET].split("&")[0])
 					vert2_offset = int(self.m_chatmessage[OTHER_OFFSET].split("&")[1]) if len(self.m_chatmessage[OTHER_OFFSET].split("&")) > 1 else 0
 				else:
@@ -2369,16 +2379,11 @@ class gui(QtGui.QWidget):
 			self.nointerruptbtn.hide()
 			self.paircheckbox.setDisabled(True)
 			self.paircheckbox.setText("This server does not support pairing.")
-		
-		if "flipping" in features:
-			self.flipbutton.show()
-		else:
-			self.flipbutton.hide()
-		
-		if "customobjections" in features:
-			self.customobject.show()
-		else:
-			self.customobject.hide()
+
+		self.flipbutton.setVisible("flipping" in features)
+		self.customobject.setVisible("customobjections" in features)
+		self.ypairoffset.setVisible("y_offset" in features)
+		self.ypairoffset_l.setVisible("y_offset" in features)
 		
 		self.colordropdown.clear()
 		self.colordropdown.addItems(['white', 'green', 'red', 'orange', 'blue'])
