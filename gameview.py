@@ -11,6 +11,7 @@ AOpath = "base/"
 AO2XPpath = "AO2XPbase/"
 #AOpath = 'I:/aovanilla1.7.5/client/base/'
 
+DESK_MOD = 1
 PREANIM = 2
 CHARNAME = 3
 ANIM = 4
@@ -1787,6 +1788,12 @@ class gui(QtGui.QWidget):
 			self.court.setPixmap(self.side_jud if self.side_sea.isNull() else self.side_sea)
 			self.presentedevi.move(16, 16)
 
+		deskmod = self.m_chatmessage[DESK_MOD]
+		if deskmod == "0" or (deskmod != "1" and (side in ("jud", "hld", "hlp"))):
+			self.bench.hide()
+		else:
+			self.bench.show()
+
 	def objection_done(self):
 		self.handle_chatmessage_2()
 
@@ -2748,7 +2755,7 @@ class TCP_Thread(QtCore.QThread):
 						print '[warning]', 'malformed/incomplete MS#chat (IC chat) network message was received'
 						continue
 					
-					network[CHATMSG] = network[CHATMSG].decode('utf-8').replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#')
+					network[CHATMSG] = decode_ao_str(network[CHATMSG].decode('utf-8'))
 					self.MS_Chat.emit(network)
 					
 				elif header == 'MC':
