@@ -2092,6 +2092,11 @@ class gui(QtGui.QWidget):
 			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".wav", 0, 0, 0)
 		elif exists(AOpath+"sounds/general/sfx-blip"+self.blip+".opus"):
 			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/general/sfx-blip"+self.blip+".opus", 0, 0, 0)
+		elif exists(AOpath+"sounds/blips/"+self.blip+".wav"):
+			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/blips/"+self.blip+".wav", 0, 0, 0)
+		elif exists(AOpath+"sounds/blips/"+self.blip+".opus"):
+			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/blips/"+self.blip+".opus", 0, 0, 0)
+
 		BASS_ChannelSetAttribute(self.blipsnd, BASS_ATTRIB_VOL, self.blipslider.value() / 100.0)
 
 		emote_mod = int(self.m_chatmessage[EMOTE_MOD])
