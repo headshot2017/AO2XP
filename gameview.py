@@ -2337,7 +2337,15 @@ class gui(QtGui.QWidget):
 			BASS_ChannelPlay(self.music, True)
 			
 		elif ini.read_ini_bool("AO2XP.ini", "General", "download music"):
-			self.music = BASS_StreamCreateURL(buckets[0]+'base/sounds/music/' + mus.lower() if not mus.lower().startswith("http") else mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+			if mus.lower().startswith("http"):
+				self.music = BASS_StreamCreateURL(mus, 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+			else:
+				for bucket in buckets:
+					if not bucket: continue
+					print "music stream:", bucket+'base/sounds/music/' + mus.lower()
+					self.music = BASS_StreamCreateURL(bucket+'base/sounds/music/' + mus.lower(), 0, BASS_STREAM_BLOCK, DOWNLOADPROC(), 0)
+					if self.music: break
+
 			if self.music:
 				BASS_ChannelSetAttribute(self.music, BASS_ATTRIB_VOL, self.musicslider.value() / 100.0)
 				BASS_ChannelPlay(self.music, True)
@@ -2358,6 +2366,9 @@ class gui(QtGui.QWidget):
 		self.evidence = evidence
 		self.areas = areas
 		self.features = features
+
+		if "base/" in webAO_bucket:
+			webAO_bucket = webAO_bucket.replace("base/", "")
 		buckets[0] = webAO_bucket
 
 		self.charselect.setCharList(charlist)
