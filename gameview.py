@@ -1563,7 +1563,7 @@ class gui(QtGui.QWidget):
 
 			# AO 2.8: always send offset
 			if "y_offset" in self.features: # AO 2.9
-				msg += str(self.pairoffset.value()) + "&" + str(self.ypairoffset.value()) + "#"
+				msg += str(self.pairoffset.value()) + "&" + str(-self.ypairoffset.value()) + "#"
 			else:
 				msg += str(self.pairoffset.value())+"#"
 
