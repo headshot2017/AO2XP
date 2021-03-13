@@ -118,6 +118,7 @@ def download_thread(link, savepath):
         return
 
     for bucket in buckets:
+        if not bucket: continue
         i = buckets.index(bucket)
 
         print "download missing: %s" % link
