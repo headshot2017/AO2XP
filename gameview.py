@@ -910,6 +910,12 @@ class gui(QtGui.QWidget):
 		self.additivebtn.move(272+60, 272+28)
 		self.additivebtn.clicked.connect(self.onAdditiveCheck)
 
+		self.deskbtn = QtGui.QCheckBox(self)
+		self.deskbtn.setChecked(True)
+		self.deskbtn.setText('Desk')
+		self.deskbtn.resize(self.nointerruptbtn.sizeHint())
+		self.deskbtn.move(self.flipbutton.x()+96, self.flipbutton.y())
+
 		self.effectdropdown = QtGui.QComboBox(self)
 		self.effectdropdown.setGeometry(272+60, 272+28+18, 88, 20)
 
@@ -1526,7 +1532,12 @@ class gui(QtGui.QWidget):
 				modifier = 2
 		
 		msg = "MS#"
-		msg += "1#" # visible desk modifier
+
+		if "deskmod" in self.features: # visible desk modifier
+			msg += "%d#" % self.deskbtn.isChecked()
+		else:
+			msg += "chat#"
+
 		msg += emote[1]+"#" #pre-anim
 		msg += self.charname+"#"
 		msg += emote[2]+"#" #anim
@@ -2406,6 +2417,7 @@ class gui(QtGui.QWidget):
 			self.paircheckbox.setDisabled(True)
 			self.paircheckbox.setText("This server does not support pairing.")
 
+		self.deskbtn.setDisabled("deskmod" not in features)
 		self.flipbutton.setVisible("flipping" in features)
 		self.customobject.setVisible("customobjections" in features)
 		self.ypairoffset.setVisible("y_offset" in features)
