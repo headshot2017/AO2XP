@@ -2096,6 +2096,8 @@ class gui(QtGui.QWidget):
 			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/blips/"+self.blip+".wav", 0, 0, 0)
 		elif exists(AOpath+"sounds/blips/"+self.blip+".opus"):
 			self.blipsnd = BASS_StreamCreateFile(False, AOpath+"sounds/blips/"+self.blip+".opus", 0, 0, 0)
+		else:
+			self.blipsnd = 0
 
 		BASS_ChannelSetAttribute(self.blipsnd, BASS_ATTRIB_VOL, self.blipslider.value() / 100.0)
 
