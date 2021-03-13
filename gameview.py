@@ -1615,9 +1615,15 @@ class gui(QtGui.QWidget):
 		self.side_wit = QtGui.QPixmap(AOpath + 'background/' + bg + '/witnessempty.png')
 		self.bench_wit = QtGui.QPixmap(AOpath + 'background/' + bg + '/stand.png')
 		self.side_hld = QtGui.QPixmap(AOpath + 'background/' + bg + '/helperstand.png')
+		self.bench_hld = QtGui.QPixmap(AOpath + 'background/' + bg + '/helperdesk.png')
 		self.side_hlp = QtGui.QPixmap(AOpath + 'background/' + bg + '/prohelperstand.png')
+		self.bench_hlp = QtGui.QPixmap(AOpath + 'background/' + bg + '/prohelperdesk.png')
 		self.side_jud = QtGui.QPixmap(AOpath + 'background/' + bg + '/judgestand.png')
-		self.side_sea = QtGui.QPixmap(AOpath + 'background/' + bg + '/seance.png')
+		self.bench_jud = QtGui.QPixmap(AOpath + 'background/' + bg + '/judgedesk.png')
+		self.side_jur = QtGui.QPixmap(AOpath + 'background/' + bg + '/jurystand.png')
+		self.bench_jur = QtGui.QPixmap(AOpath + 'background/' + bg + '/jurydesk.png')
+		self.side_sea = QtGui.QPixmap(AOpath + 'background/' + bg + '/seancestand.png')
+		self.bench_sea = QtGui.QPixmap(AOpath + 'background/' + bg + '/seancedesk.png')
 
 	def netmsg_hp(self, type, health):
 		if type == 1:
@@ -1757,35 +1763,36 @@ class gui(QtGui.QWidget):
 			self.court.setPixmap(self.side_def)
 			self.bench.setPixmap(self.bench_def)
 			self.bench.move(0, 192 - self.bench_def.size().height())
-			self.bench.show()
 			self.presentedevi.move(170, 16)
 		elif side == 'pro':
 			self.court.setPixmap(self.side_pro)
 			self.bench.setPixmap(self.bench_pro)
 			self.bench.move(256 - self.bench_pro.size().width(), 192 - self.bench_pro.size().height())
-			self.bench.show()
 			self.presentedevi.move(16, 16)
 		elif side == 'wit':
 			self.court.setPixmap(self.side_wit)
 			self.bench.setPixmap(self.bench_wit)
 			self.bench.move(0, 0)
-			self.bench.show()
 			self.presentedevi.move(16, 16)
 		elif side == 'hld':
 			self.court.setPixmap(self.side_hld)
-			self.bench.hide()
+			self.bench.setPixmap(self.bench_hld)
 			self.presentedevi.move(16, 16)
 		elif side == 'hlp':
 			self.court.setPixmap(self.side_hlp)
-			self.bench.hide()
+			self.bench.setPixmap(self.bench_hlp)
 			self.presentedevi.move(170, 16)
 		elif side == 'jud':
 			self.court.setPixmap(self.side_jud)
-			self.bench.hide()
+			self.bench.setPixmap(self.bench_jud)
 			self.presentedevi.move(16, 16)
 		elif side == 'sea':
-			self.bench.hide()
 			self.court.setPixmap(self.side_jud if self.side_sea.isNull() else self.side_sea)
+			self.bench.setPixmap(self.bench_jud if self.bench_sea.isNull() else self.bench_sea)
+			self.presentedevi.move(16, 16)
+		elif side == 'jur':
+			self.court.setPixmap(self.side_jud if self.side_jur.isNull() else self.side_jur)
+			self.bench.setPixmap(self.bench_jud if self.bench_jur.isNull() else self.bench_jur)
 			self.presentedevi.move(16, 16)
 
 		deskmod = self.m_chatmessage[DESK_MOD]
