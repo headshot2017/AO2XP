@@ -467,7 +467,7 @@ class AOServerInfo(QtCore.QThread):
 						self.returnToLobby.emit()
 						return
 					
-					self.setWindowTitle.emit(self.name)
+					self.setWindowTitle.emit("AO2XP: "+self.name)
 					return
 					
 			try:
