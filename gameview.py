@@ -259,8 +259,6 @@ class AOCharMovie(QtGui.QLabel):
 			if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 				url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".apng"
 				url = url.replace(" ", "%20")
-				if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
-					os.mkdir(AOpath+"characters/"+p_char)
 				thread.start_new_thread(download_thread, (url, apng_path))
 
 			if exists(webp_path):
@@ -270,8 +268,6 @@ class AOCharMovie(QtGui.QLabel):
 				if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 					url = "base/characters/"+p_char.lower()+"/"+p_emote.lower()+".webp"
 					url = url.replace(" ", "%20")
-					if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
-						os.mkdir(AOpath+"characters/"+p_char)
 					thread.start_new_thread(download_thread, (url, webp_path))
 
 				if exists(original_path):
@@ -281,8 +277,6 @@ class AOCharMovie(QtGui.QLabel):
 					if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 						url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".gif"
 						url = url.replace(" ", "%20")
-						if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
-							os.mkdir(AOpath+"characters/"+p_char)
 						thread.start_new_thread(download_thread, (url, original_path))
 
 					if exists(alt_path):
@@ -292,8 +286,6 @@ class AOCharMovie(QtGui.QLabel):
 						if ini.read_ini_bool("AO2XP.ini", "General", "download characters"):
 							url = "base/characters/"+p_char.lower()+"/"+emote_prefix+p_emote.lower()+".png"
 							url = url.replace(" ", "%20")
-							if not exists(AOpath+"characters/"+p_char): # gotta make sure the character folder exists, better safe than sorry
-								os.mkdir(AOpath+"characters/"+p_char)
 							thread.start_new_thread(download_thread, (url, alt_path))
 
 						if exists(placeholder_path):
@@ -2297,8 +2289,6 @@ class gui(QtGui.QWidget):
 			else:
 				self.objectsnd = None
 				if ini.read_ini_bool("AO2XP.ini", "General", "download sounds"):
-					if not exists(AOpath+"characters/"+charname.lower()): # gotta make sure the character folder exists, better safe than sorry
-						os.mkdir(AOpath+"characters/"+charname.lower())
 					thread.start_new_thread(download_thread, ("base/characters/"+charname.lower()+"/"+objecting.lower()+".wav", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
 					thread.start_new_thread(download_thread, ("base/characters/"+charname.lower()+"/"+objecting.lower()+".opus", AOpath+"characters/"+charname.lower()+"/"+objecting.lower()+".wav"))
 
