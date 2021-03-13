@@ -237,7 +237,7 @@ class lobby(QtGui.QWidget):
 		self.serverlist.clear()
 		if self.tab == 0:
 			try:
-				self.ms_tcp.send('ALL#%')
+				self.masterserver.ms_tcp.send('ALL#%')
 			except:
 				self.lobbychatlog.append('failed to refresh server list')
 
@@ -330,7 +330,7 @@ class lobby(QtGui.QWidget):
 
 	def lobby_sendchat(self):
 		text = self.lobbychatinput.text().toUtf8()
-		self.ms_tcp.send('CT#' +self.oocname+ '#' + text + '#%')
+		self.masterserver.ms_tcp.send('CT#' +self.oocname+ '#' + text + '#%')
 		self.lobbychatinput.clear()
 
 	def setoocname(self):
