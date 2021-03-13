@@ -533,7 +533,7 @@ class AOServerInfo(QtCore.QThread):
 					del network[0]
 					del network[len(network)-1]
 					gotChars = True
-					charlist = [ [char.split('&')[0], -1, "male"] for char in network ]
+					charlist = [ [char.split('&')[0], 0, "male"] for char in network ]
 					self.setConnectProgress.emit('Requesting music list (%d)...' % maxmusic)
 					self.tcp.send('RM#%')
 					print '[client]', 'received characters (%d)' % len(charlist)
