@@ -59,7 +59,7 @@ class lobby(QtGui.QWidget):
 		self.connectingimg.hide()
 		
 		self.clientver = QtGui.QLabel(self)
-		self.clientver.setText('AO2XP 1.4.1 by Headshot')
+		self.clientver.setText('AO2XP 1.5 by Headshot')
 		self.clientver.resize(self.clientver.sizeHint())
 		self.clientver.move(self.pix_lobby.size().width() - self.clientver.size().width(), 0)
 	
