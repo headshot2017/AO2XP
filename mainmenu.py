@@ -504,7 +504,7 @@ class AOServerInfo(QtCore.QThread):
 					self.tcp.send("HI#AO2XP %s#%%" % hardware.get_hdid())
 				
 				elif header == "ID":
-					self.tcp.send("ID#AO2#69.1337.420#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
+					self.tcp.send("ID#AO2XP#1.5#%") # need to send this to tsuserver3 servers in order to get feature list (FL)
 					
 				elif header == "FL":
 					features = network[1:]
