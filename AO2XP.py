@@ -44,9 +44,9 @@ class gamewindow(QtGui.QMainWindow):
 		frameGm.moveCenter(centerPoint)
 		self.move(frameGm.topLeft())
 	
-	def showGame(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[]):
+	def showGame(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[], webAO_bucket=""):
 		self.gamewidget.disconnectnow = False
-		self.gamewidget.startGame(tcp, charlist, musiclist, background, evidence, areas, features, oocjoin, hplist)
+		self.gamewidget.startGame(tcp, charlist, musiclist, background, evidence, areas, features, oocjoin, hplist, webAO_bucket)
 		self.stackwidget.setCurrentWidget(self.gamewidget)
 	
 	def returnToMenu(self):

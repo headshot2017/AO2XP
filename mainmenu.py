@@ -192,25 +192,20 @@ class lobby(QtGui.QWidget):
 		del servers[-1]
 		for svcontent in servers:
 			server = svcontent.split('&')
-			del server[-1]
+
 			name = server[0].decode('utf-8')
 			desc = server[1].decode('utf-8')
-			if len(server) <= 2:
-				ip = '0.0.0.0'
-				port = 0
-			elif len(server) == 3:
-				ip = server[2]
-				port = 27017
-			elif len(server) == 4:
-				ip = server[2]
-				port = int(server[3])
+			ip = server[2]
+			port = int(server[3])
+			webAO_bucket = server[4]
+
 			serveritem = QtGui.QListWidgetItem(name)
 			if self.tab == 0: self.serverlist.addItem(serveritem)
-			self.actual_serverlist.append((ip, port, name, desc))
+			self.actual_serverlist.append((ip, port, name, desc, webAO_bucket))
 
 	def moveToGame(self, stuff):
-		tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist = stuff
-		self.move_to_game(tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist)
+		tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist, webAO_bucket = stuff
+		self.move_to_game(tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist, webAO_bucket)
     
 	def onSettingsClicked(self):
 		self.gamewindow.showSettings()
@@ -320,16 +315,18 @@ class lobby(QtGui.QWidget):
 				if self.tab == 0:
 					self.serverinfo.setText(self.actual_serverlist[i][3])
 					self.aoserverinfo.setIP(text, *self.actual_serverlist[i][:2])
+					self.aoserverinfo.webAO_bucket = self.actual_serverlist[i][-1]
 					print '[debug]', 'ind: ' + str(i) + ', ip: ' + self.actual_serverlist[i][0] + ', port: ' + str(self.actual_serverlist[i][1])
 				elif self.tab == 1:
 					self.aoserverinfo.setIP(text, *self.favoriteslist[i][:2])
+					self.aoserverinfo.webAO_bucket = ""
 					print '[debug]', 'ind: ' + str(i) + ', ip: ' + self.favoriteslist[i][0] + ', port: ' + str(self.favoriteslist[i][1])
 
 				self.aoserverinfo.stop()
 				self.aoserverinfo.start()
 
-	def move_to_game(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[]):
-		self.gamewindow.showGame(tcp, charlist, musiclist, background, evidence, areas, features, oocjoin, hplist)
+	def move_to_game(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[], webAO_bucket=""):
+		self.gamewindow.showGame(tcp, charlist, musiclist, background, evidence, areas, features, oocjoin, hplist, webAO_bucket)
 
 	def lobby_sendchat(self):
 		text = self.lobbychatinput.text().toUtf8()
@@ -382,7 +379,7 @@ class MasterServer(QtCore.QThread):
 				header = network[0]
 				
 				if header == "servercheok":
-					self.ms_tcp.send("HI#AO2XP %s#%%ID#AO2XP by Headshot#1.4.1#%%" % hardware.get_hdid())
+					self.ms_tcp.send("HI#AO2XP %s#%%ID#AO2XP by Headshot#1.5#%%" % hardware.get_hdid())
 					self.ms_tcp.send("ALL#%")
 				
 				elif header == 'DOOM':
@@ -395,8 +392,8 @@ class MasterServer(QtCore.QThread):
 					self.gotServers.emit(network)
 
 				elif header == 'CT':
-					name = network[1].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
-					chatmsg = network[2].decode("utf-8").replace('<dollar>', '$').replace('<percent>', '%').replace('<and>', '&').replace('<num>', '#').replace('<pound>', '#')
+					name = decode_ao_str(network[1].decode("utf-8"))
+					chatmsg = decode_ao_str(network[2].decode("utf-8"))
 					self.gotOOCMsg.emit(name, chatmsg)
 
 class AOServerInfo(QtCore.QThread):
@@ -414,6 +411,7 @@ class AOServerInfo(QtCore.QThread):
 		self.ip = ""
 		self.port = 0
 		self.name = "jm"
+		self.webAO_bucket = ""
 		self.disconnect = False
 
 	def setIP(self, name, ip, port):
@@ -463,7 +461,7 @@ class AOServerInfo(QtCore.QThread):
 				if readytick == 0:
 					readytick = -1
 					try:
-						self.moveToGameSignal.emit([self.tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist])
+						self.moveToGameSignal.emit([self.tcp, charlist, musiclist, background, evidence, areas, features, joinooc, hplist, self.webAO_bucket])
 					except Exception as err:
 						self.msgbox_signal.emit(0, "Error caught while loading", traceback.format_exc(err))
 						self.returnToLobby.emit()

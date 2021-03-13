@@ -109,7 +109,9 @@ def get_text_color(textcolor):
 	
 	return QtGui.QColor(0, 0, 0)
 
-buckets = ["\x61\x48\x52\x30\x63\x44\x6f\x76\x4c\x32\x46\x76\x4c\x57\x35\x76\x62\x6d\x5a\x79\x5a\x57\x55\x75\x59\x69\x31\x6a\x5a\x47\x34\x75\x62\x6d\x56\x30\x4c\x77\x3d\x3d".decode("\x62\x61\x73\x65\x36\x34")] # troll
+buckets = ["", "\x61\x48\x52\x30\x63\x44\x6f\x76\x4c\x32\x46\x76\x4c\x57\x35\x76\x62\x6d\x5a\x79\x5a\x57\x55\x75\x59\x69\x31\x6a\x5a\x47\x34\x75\x62\x6d\x56\x30\x4c\x77\x3d\x3d".decode("\x62\x61\x73\x65\x36\x34")] # troll
+# bucket 0 ("") is used for server's own bucket
+
 def download_thread(link, savepath):
     global DOWNLOAD_BLACKLIST
     if link in DOWNLOAD_BLACKLIST:
@@ -2355,7 +2357,7 @@ class gui(QtGui.QWidget):
 				BASS_ChannelStop(self.music)
 			BASS_StreamFree(self.music)
 
-	def startGame(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[]):
+	def startGame(self, tcp, charlist, musiclist, background, evidence, areas, features=[], oocjoin=[], hplist=[], webAO_bucket=""):
 		self.willDisconnect = False
 		self.mychar = -1
 		self.mychatcolor = 0
@@ -2365,7 +2367,8 @@ class gui(QtGui.QWidget):
 		self.evidence = evidence
 		self.areas = areas
 		self.features = features
-		
+		buckets[0] = webAO_bucket
+
 		self.charselect.setCharList(charlist)
 		self.charselect.show()
 		
