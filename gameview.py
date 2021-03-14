@@ -78,7 +78,7 @@ def get_char_ini(char, section, value, default=""):
 
 def get_option(section, value, default=""):
         tempini = ConfigParser()
-	tempini.read("ao2xp.ini")
+	tempini.read("AO2XP.ini")
 	return ini.read_ini(tempini, section, value, default)
 
 def get_img_suffix(path):
@@ -2806,7 +2806,9 @@ class TCP_Thread(QtCore.QThread):
 				
 				elif header == 'PV':
 					self.parent.mychar = int(network[3])
+					#print "hiding"
 					self.parent.charselect.hide()
+					#print "hidden"
 					self.newChar.emit(self.parent.charlist[self.parent.mychar][0])
 				
 				elif header == 'LE':
