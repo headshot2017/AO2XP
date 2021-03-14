@@ -35,6 +35,10 @@ OPTIONS = dict(
 		"libbass.dylib",
 		"libbassopus.so",
 		"libbassopus.dylib",
+		"mod_call.wav",
+		"placeholder.png",
+		"sfx-notguilty.wav",
+		"word_call.wav",
 	],
 
 	argv_emulation = False
