@@ -2806,9 +2806,7 @@ class TCP_Thread(QtCore.QThread):
 				
 				elif header == 'PV':
 					self.parent.mychar = int(network[3])
-					#print "hiding"
 					self.parent.charselect.hide()
-					#print "hidden"
 					self.newChar.emit(self.parent.charlist[self.parent.mychar][0])
 				
 				elif header == 'LE':
